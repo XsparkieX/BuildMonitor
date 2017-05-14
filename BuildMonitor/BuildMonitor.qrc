@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/BuildMonitor">
+        <file>Resources/failed_build.png</file>
+        <file>Resources/failed_build_in-progress.png</file>
+        <file>Resources/successful_build.png</file>
+        <file>Resources/successful_build_in-progress.png</file>
+        <file>Resources/no_information.png</file>
+    </qresource>
+</RCC>

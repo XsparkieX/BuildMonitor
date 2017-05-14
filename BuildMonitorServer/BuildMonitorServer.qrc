@@ -1,0 +1,4 @@
+<RCC>
+    <qresource prefix="BuildMonitorServer">
+    </qresource>
+</RCC>
