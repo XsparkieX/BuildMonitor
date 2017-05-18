@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Build Monitor</Name>
+    <Version>1.0</Version>
+    <Title>Installer</Title>
+    <Publisher></Publisher>
+    <StartMenuDir>BuildMonitor</StartMenuDir>
+    <TargetDir>@RootDir@/Program Files/BuildMonitor</TargetDir>
+</Installer>

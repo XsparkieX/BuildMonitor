@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Build Monitor</DisplayName>
+    <Description>This application helps you with monitoring the state of projects.</Description>
+    <Version>1.0</Version>
+    <ReleaseDate>2017-05-15</ReleaseDate>
+	<Name>buildmonitor</Name>
+    <Licenses>
+        <License name="GNU General Public License Agreement" file="LICENSE" />
+    </Licenses>
+    <Default>script</Default>
+    <Script>installscript.qs</Script>
+</Package>
