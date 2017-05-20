@@ -21,6 +21,13 @@
 #include <qobject.h>
 #include <qtcpsocket.h>
 
+enum class BuildMonitorRequestType
+{
+	FixInformation,
+	ReportFixing,
+	ReportFixed
+};
+
 class BuildMonitorServerWorker : public QObject
 {
 	Q_OBJECT
@@ -28,19 +35,14 @@ class BuildMonitorServerWorker : public QObject
 public:
 	struct Request
 	{
-		QByteArray data;
-		enum class Type
-		{
-			FixInformation,
-			ReportFixing,
-			ReportFixed
-		} type;
-
-		Request(const QByteArray& inData, const Type& inType) :
+		Request(const QByteArray& inData, const BuildMonitorRequestType& inType) :
 			data(inData),
 			type(inType)
 		{
 		}
+
+		QByteArray data;
+		BuildMonitorRequestType type;
 	};
 
 	BuildMonitorServerWorker(QThread& workerThread);
@@ -49,17 +51,16 @@ public:
 	void setServerAddress(const QString& inServerAddress, const quint16& inServerPort);
 
 	void addToQueue(const Request& request);
-	bool containsRequestType(const Request::Type& type);
+	bool containsRequestType(const BuildMonitorRequestType& type);
 	
 public slots:
 	void processQueue();
 
 signals:
 	void responseGenerated(QByteArray data);
-	void failure(BuildMonitorServerWorker::Request::Type type);
+	void failure(BuildMonitorRequestType type);
 
 private:
-
 	void onResponseGenerated();
 	void onDisconnected();
 
@@ -74,4 +75,4 @@ private:
 	bool isProcessingRequest;
 };
 
-Q_DECLARE_METATYPE(BuildMonitorServerWorker::Request::Type);
+Q_DECLARE_METATYPE(BuildMonitorRequestType);

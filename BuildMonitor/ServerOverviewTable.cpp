@@ -145,7 +145,7 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 		itemPool.push_back(new QStandardItem(initiators));
 	}
 
-	const qint32 numProjects = inProjectInformation.size();
+    const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
 	for (qint32 row = 0; row < numProjects; ++row)
 	{
 		for (qint32 column = 0; column < numHeaders; ++column)

@@ -26,6 +26,8 @@ BuildMonitorServerWorker::BuildMonitorServerWorker(QThread& workerThread) :
 	socket(this),
 	isProcessingRequest(false)
 {
+	qRegisterMetaType<BuildMonitorRequestType>();
+
 	connect(&socket, &QIODevice::readyRead, this, &BuildMonitorServerWorker::onResponseGenerated);
 	connect(&socket, &QAbstractSocket::disconnected, this, &BuildMonitorServerWorker::onDisconnected);
 
@@ -53,7 +55,7 @@ void BuildMonitorServerWorker::addToQueue(const Request& request)
 	requestMutex.unlock();
 }
 
-bool BuildMonitorServerWorker::containsRequestType(const Request::Type& type)
+bool BuildMonitorServerWorker::containsRequestType(const BuildMonitorRequestType& type)
 {
 	requestMutex.lock();
 	std::vector<Request>::iterator pos = std::find_if(requests.begin(), requests.end(),
@@ -106,7 +108,7 @@ void BuildMonitorServerWorker::onDisconnected()
 	requestMutex.lock();
 	if (requests.size() > 0)
 	{
-		const Request::Type type = requests.begin()->type;
+		const BuildMonitorRequestType type = requests.begin()->type;
 		requests.erase(requests.begin());
 		requestMutex.unlock();
 		

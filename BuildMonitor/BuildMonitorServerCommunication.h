@@ -30,7 +30,7 @@ class BuildMonitorServerCommunication : public QObject
 
 public:
 	BuildMonitorServerCommunication(QObject* parent);
-	~BuildMonitorServerCommunication();
+	virtual ~BuildMonitorServerCommunication();
 	
 	void setServerAddress(const QString& serverAddress);
 	void requestFixInformation(const std::vector<class ProjectInformation>& projects);
@@ -42,7 +42,7 @@ Q_SIGNALS:
 	void processQueue();
 
 private slots:
-	void onFailure(BuildMonitorServerWorker::Request::Type type);
+	void onFailure(BuildMonitorRequestType type);
 	void onResponseGenerated(QByteArray data);
 
 private:

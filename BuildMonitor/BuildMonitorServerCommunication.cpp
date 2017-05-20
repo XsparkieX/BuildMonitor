@@ -74,7 +74,7 @@ void BuildMonitorServerCommunication::setServerAddress(const QString& inServerAd
 
 void BuildMonitorServerCommunication::requestFixInformation(const std::vector<class ProjectInformation>& projects)
 {
-	if (!worker->containsRequestType(BuildMonitorServerWorker::Request::Type::FixInformation))
+	if (!worker->containsRequestType(BuildMonitorRequestType::FixInformation))
 	{
 		QJsonObject root;
 		root["version"] = 1;
@@ -90,7 +90,7 @@ void BuildMonitorServerCommunication::requestFixInformation(const std::vector<cl
 		QJsonDocument doc;
 		doc.setObject(root);
 
-		worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorServerWorker::Request::Type::FixInformation));
+		worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorRequestType::FixInformation));
 		emit processQueue();
 	}
 }
@@ -113,7 +113,7 @@ void BuildMonitorServerCommunication::requestReportFixing(const QString& project
 	QJsonDocument doc;
 	doc.setObject(root);
 
-	worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorServerWorker::Request::Type::ReportFixing));
+	worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorRequestType::ReportFixing));
 	emit processQueue();
 }
 
@@ -129,7 +129,7 @@ void BuildMonitorServerCommunication::requestReportFixed(const QString& projectN
 	QJsonDocument doc;
 	doc.setObject(root);
 
-	worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorServerWorker::Request::Type::ReportFixed));
+	worker->addToQueue(BuildMonitorServerWorker::Request(doc.toBinaryData(), BuildMonitorRequestType::ReportFixed));
 	emit processQueue();
 }
 
@@ -159,9 +159,9 @@ void BuildMonitorServerCommunication::onResponseGenerated(QByteArray data)
 	emit processQueue();
 }
 
-void BuildMonitorServerCommunication::onFailure(BuildMonitorServerWorker::Request::Type type)
+void BuildMonitorServerCommunication::onFailure(BuildMonitorRequestType type)
 {
-	if (type == BuildMonitorServerWorker::Request::Type::FixInformation)
+	if (type == BuildMonitorRequestType::FixInformation)
 	{
 		onFixInformationUpdated(fixInformation);
 	}
