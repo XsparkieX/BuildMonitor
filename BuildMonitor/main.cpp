@@ -31,6 +31,5 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	BuildMonitor w;
-	w.show();
 	return a.exec();
 }

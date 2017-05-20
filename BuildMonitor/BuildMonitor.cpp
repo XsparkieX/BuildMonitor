@@ -90,12 +90,16 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	{
 		if (settings.closeToTrayOnStartup)
 		{
-			close();
+			hide();
 		}
 		else
 		{
 			showMinimized();
 		}
+	}
+	else
+	{
+		show();
 	}
 }
 
@@ -408,12 +412,12 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 		EProjectStatus::Disabled,
 		EProjectStatus::Unknown
 	};
-	qint32 newStatusIndex = priorityList.size() - 1;
+    size_t newStatusIndex = priorityList.size() - 1;
 
 	bool isBuilding = false;
 	for (const ProjectInformation& info : projectInformation)
 	{
-		qint32 statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
+        size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
 		if (statusIndex < newStatusIndex)
 		{
 			newStatusIndex = statusIndex;
