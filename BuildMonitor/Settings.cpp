@@ -18,15 +18,15 @@
 #include "Settings.h"
 
 #include <qdir.h>
+#include <qstandardpaths.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 
-static const QDir projectUserFolder = QDir::homePath() + "/BuildMonitor";
-
 Settings::Settings(QObject* parent) :
 	QObject(parent),
 	fixServerAddress("jenkins:1080"),
+	projectSettingsFolder(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
 	refreshIntervalInSeconds(60),
 	showDisabledProjects(false),
 	projectRegEx(".*"),
@@ -42,7 +42,7 @@ Settings::Settings(QObject* parent) :
 
 bool Settings::loadSettings()
 {
-	QFile settingsFile(projectUserFolder.absoluteFilePath("Settings.json"));
+	QFile settingsFile(projectSettingsFolder.absoluteFilePath("Settings.json"));
 	if (!settingsFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		return false;
@@ -188,11 +188,11 @@ void Settings::saveSettings()
 	QJsonDocument settingsJson;
 	settingsJson.setObject(root);
 
-	if (!projectUserFolder.exists())
+	if (!projectSettingsFolder.exists())
 	{
-		projectUserFolder.mkpath(projectUserFolder.absolutePath());
+		projectSettingsFolder.mkpath(projectSettingsFolder.absolutePath());
 	}
-	QFile settingsFile(projectUserFolder.absoluteFilePath("Settings.json"));
+	QFile settingsFile(projectSettingsFolder.absoluteFilePath("Settings.json"));
 	if (!settingsFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		return;

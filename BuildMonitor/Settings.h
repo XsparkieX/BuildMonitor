@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <qdir.h>
 #include <qobject.h>
 #include <qstring.h>
 #include <qurl.h>
@@ -29,6 +30,8 @@ public:
 
 	bool loadSettings();
 	void saveSettings();
+
+	const QDir projectSettingsFolder;
 
 	std::vector<QUrl> serverURLs;
 	QString fixServerAddress;
