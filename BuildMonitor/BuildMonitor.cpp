@@ -22,6 +22,7 @@
 #include "ProjectInformation.h"
 #include "Settings.h"
 #include "SettingsDialog.h"
+#include "TrayContextMenu.h"
 
 #include <qdesktopservices.h>
 #include <qevent.h>
@@ -41,6 +42,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	failedBuildIcon(":/BuildMonitor/Resources/failed_build.png"),
 	failedBuildInProgressIcon(":/BuildMonitor/Resources/failed_build_in-progress.png"),
 	tray(new QSystemTrayIcon(QIcon(), this)),
+	trayContextMenu(new TrayContextMenu(this)),
 #ifdef _MSC_VER
 	winTaskbarButton(new QWinTaskbarButton(this)),
 #endif
@@ -80,9 +82,11 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	connect(ui.serverOverviewTable, &ServerOverviewTable::volunteerToFix, this, &BuildMonitor::onVolunteerToFix);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::viewBuildLog, this, &BuildMonitor::onViewBuildLog);
 
+	tray->setContextMenu(trayContextMenu);
 	tray->show();
 	connect(tray, &QSystemTrayIcon::messageClicked, this, &BuildMonitor::showWindow);
 	connect(tray, &QSystemTrayIcon::activated, this, &BuildMonitor::onTrayActivated);
+	connect(trayContextMenu, &TrayContextMenu::contextActionExecuted, this, &BuildMonitor::onTrayContextActionExecuted);
 
 	updateIcons();
 
@@ -320,9 +324,26 @@ void BuildMonitor::onSettingsChanged()
 	jenkins->refresh();
 }
 
-void BuildMonitor::onTrayActivated(QSystemTrayIcon::ActivationReason /* reason */)
+void BuildMonitor::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-	showWindow();
+	if (reason != QSystemTrayIcon::Context)
+	{
+		showWindow();
+	}
+}
+
+void BuildMonitor::onTrayContextActionExecuted(TrayContextAction action)
+{
+	switch (action)
+	{
+	case TrayContextAction::Exit:
+		exit();
+		break;
+
+	case TrayContextAction::Show:
+		showWindow();
+		break;
+	}
 }
 
 void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformation>& projectInformation)

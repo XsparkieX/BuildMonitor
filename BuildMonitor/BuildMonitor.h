@@ -21,6 +21,7 @@
 #include "ProjectInformation.h"
 #include "ProjectStatus.h"
 #include "Settings.h"
+#include "TrayContextAction.h"
 
 #include <qsystemtrayicon.h>
 
@@ -54,6 +55,7 @@ private:
 
 	void onSettingsChanged();
 	void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
+	void onTrayContextActionExecuted(TrayContextAction action);
 	void onProjectInformationUpdated(const std::vector<ProjectInformation>& projectInformation);
 	void onFixInformationUpdated(const std::vector<FixInformation>& fixInformation);
 	void onProjectInformationError(const QString& errorMessage);
@@ -68,6 +70,7 @@ private:
 	QIcon failedBuildIcon;
 	QIcon failedBuildInProgressIcon;
 	class QSystemTrayIcon* tray;
+	class TrayContextMenu* trayContextMenu;
 #ifdef _MSC_VER
 	class QWinTaskbarButton* winTaskbarButton;
 #endif
