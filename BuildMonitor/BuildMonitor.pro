@@ -5,12 +5,13 @@
 #-------------------------------------------------
 
 QT       += core gui network
+win32:QT += winextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = BuildMonitor
 TEMPLATE = app
-QMAKE_CXXFLAGS += -std=c++11
+unix:QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += main.cpp\
     BuildMonitor.cpp \
@@ -18,7 +19,9 @@ SOURCES += main.cpp\
     JenkinsCommunication.cpp \
     ServerOverviewTable.cpp \
     Settings.cpp \
-    SettingsDialog.cpp
+    SettingsDialog.cpp \
+    BuildMonitorServerWorker.cpp \
+    TrayContextMenu.cpp
 
 HEADERS  += \
     BuildMonitor.h \
@@ -30,10 +33,12 @@ HEADERS  += \
     ServerOverviewTable.h \
     Settings.h \
     SettingsDialog.h \
-    SingleInstanceMode.h
+    SingleInstanceMode.h \
+    BuildMonitorServerWorker.h \
+    TrayContextAction.h \
+    TrayContextMenu.h
 
-FORMS    += buildmonitor.ui \
-    BuildMonitor.ui \
+FORMS    += BuildMonitor.ui \
     Settings.ui
 
 RESOURCES += \

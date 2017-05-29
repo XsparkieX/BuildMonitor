@@ -243,3 +243,6 @@ ModelManifest.xml
 .fake/
 
 **/GeneratedFiles/
+
+# Qt Creator binary files
+build-*

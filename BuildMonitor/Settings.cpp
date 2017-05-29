@@ -25,8 +25,8 @@
 
 Settings::Settings(QObject* parent) :
 	QObject(parent),
-	fixServerAddress("jenkins:1080"),
 	projectSettingsFolder(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
+	fixServerAddress("jenkins:1080"),
 	refreshIntervalInSeconds(60),
 	showDisabledProjects(false),
 	projectRegEx(".*"),
