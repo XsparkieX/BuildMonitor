@@ -1,4 +1,4 @@
-@echo off
+@echo on
 
 setlocal
 
@@ -16,7 +16,7 @@ if %errorlevel% neq 0 (
 rd /S /Q "%~dp0\Packages\buildmonitor\data\"
 mkdir "%~dp0\Packages\buildmonitor\data\"
 copy "%~dp0..\x64\Release\BuildMonitor.exe" "%~dp0\Packages\buildmonitor\data\"
-"C:\Qt\5.8\msvc2015_64\bin\windeployqt.exe" "%~dp0\Packages\buildmonitor\data\BuildMonitor.exe"
+"C:\Qt\5.9\msvc2017_64\bin\windeployqt.exe" "%~dp0\Packages\buildmonitor\data\BuildMonitor.exe"
 if %errorlevel% neq 0 (
 	echo Failed to generate dependencies.
 	pause
