@@ -159,7 +159,7 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 		{
 			QJsonDocument document(QJsonDocument::fromJson(reply->readAll()));
 			QJsonObject root = document.object();
-			QJsonArray projects = root.value("jobs").toArray();
+			QJsonArray projects = root["jobs"].toArray();
 
 			for (const QJsonValue& project : projects)
 			{
@@ -167,16 +167,16 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 				{
 					const QJsonObject object = project.toObject();
 					ProjectInformation info;
-					info.projectName = object.value("name").toString();
+					info.projectName = object["name"].toString();
 
 					if (!projectIncludePattern.exactMatch(info.projectName))
 					{
 						continue;
 					}
 
-					info.projectUrl = object.value("url").toString();
+					info.projectUrl = object["url"].toString();
 					bool addToList = true;
-					const QString buildStatus = object.value("color").toString();
+					const QString buildStatus = object["color"].toString();
 					if (buildStatus.startsWith("blue"))
 					{
 						info.status = EProjectStatus::Succeeded;
@@ -247,27 +247,27 @@ void JenkinsCommunication::onProjectInformationReceived()
 			QJsonObject root = document.object();
 
 			ProjectInformation& info = *pair.first;
-			if (root.value("duration").toDouble() != 0)
+			if (root["duration"].toDouble() != 0)
 			{
-				info.inProgressFor = root.value("duration").toDouble();
+				info.inProgressFor = root["duration"].toDouble();
 				info.estimatedRemainingTime = 0;
 			}
 			else
 			{
-				const qint64 timestamp = root.value("timestamp").toDouble();
+				const qint64 timestamp = root["timestamp"].toDouble();
 				const qint64 currentTime = QDateTime::currentDateTimeUtc().toMSecsSinceEpoch();
 				info.inProgressFor = currentTime - timestamp;
-				info.estimatedRemainingTime = root.value("estimatedDuration").toDouble() - info.inProgressFor;
+				info.estimatedRemainingTime = root["estimatedDuration"].toDouble() - info.inProgressFor;
 			}
 
-			info.buildNumber = root.value("number").toInt();
+			info.buildNumber = root["number"].toInt();
 
-			const QJsonArray items = root.value("changeSet").toObject().value("items").toArray();
+			const QJsonArray items = root["changeSet"].toObject()["items"].toArray();
 			for (const QJsonValue& item : items)
 			{
 				if (item.isObject())
 				{
-					const QString name = item.toObject().value("author").toObject().value("fullName").toString();
+					const QString name = item.toObject()["author"].toObject()["fullName"].toString();
 					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end())
 					{
 						info.initiatedBy.emplace_back(name);
@@ -312,7 +312,7 @@ void JenkinsCommunication::onLastSuccesfulProjectInformationReceived()
 			QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
 			if (root["timestamp"].isDouble())
 			{
-				pair.first->lastSuccessfulBuildTime = root.value("timestamp").toDouble();
+				pair.first->lastSuccessfulBuildTime = root["timestamp"].toDouble();
 			}
 		}
 	}
