@@ -262,12 +262,12 @@ void JenkinsCommunication::onProjectInformationReceived()
 
 			info.buildNumber = root.value("number").toInt();
 
-			const QJsonArray culprits = root.value("culprits").toArray();
-			for (const QJsonValue& culprit : culprits)
+			const QJsonArray items = root.value("changeSet").toObject().value("items").toArray();
+			for (const QJsonValue& item : items)
 			{
-				if (culprit.isObject())
+				if (item.isObject())
 				{
-					const QString name = culprit.toObject().value("fullName").toString();
+					const QString name = item.toObject().value("author").toObject().value("fullName").toString();
 					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end())
 					{
 						info.initiatedBy.emplace_back(name);

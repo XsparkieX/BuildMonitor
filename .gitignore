@@ -243,6 +243,8 @@ ModelManifest.xml
 .fake/
 
 **/GeneratedFiles/
+BuildMonitor/Installer/BuildMonitorInstaller.exe
+*.7z
 
 # Qt Creator binary files
 build-*
