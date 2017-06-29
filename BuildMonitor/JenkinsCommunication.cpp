@@ -268,12 +268,14 @@ void JenkinsCommunication::onProjectInformationReceived()
 				if (item.isObject())
 				{
 					const QString name = item.toObject()["author"].toObject()["fullName"].toString();
-					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end())
+					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end() &&
+						std::find(info.initiatedBy.begin(), info.initiatedBy.end(), name) == info.initiatedBy.end())
 					{
 						info.initiatedBy.emplace_back(name);
 					}
 				}
 			}
+			std::sort(info.initiatedBy.begin(), info.initiatedBy.end());
 		}
 		else
 		{
