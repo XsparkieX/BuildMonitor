@@ -18,9 +18,9 @@
 #pragma once
 
 #include <qstandarditemmodel.h>
-#include <qtableview.h>
+#include <qtablewidget.h>
 
-class ServerOverviewTable : public QTableView
+class ServerOverviewTable : public QTableWidget
 {
 	Q_OBJECT
 
@@ -46,7 +46,6 @@ private:
 	const QIcon* failedBuilding;
 
 	const class std::vector<class ProjectInformation>* projectInformation;
-	std::vector<class QStandardItem*> itemPool;
-	class QStandardItemModel* model;
-	qint32 numHeaders;
+	std::vector<class QTableWidgetItem*> itemPool;
+	QStringList headerLabels;
 };

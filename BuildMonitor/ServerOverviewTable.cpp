@@ -23,18 +23,18 @@
 #include <qheaderview.h>
 #include <qmenu.h>
 #include <QMouseEvent>
-#include <qstandarditemmodel.h>
+#include <qtablewidget.h>
+#include <qtextstream.h>
+#include <qtooltip.h>
 
 ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
-	QTableView(parent),
+	QTableWidget(parent),
 	succeeded(nullptr),
 	succeededBuilding(nullptr),
 	failed(nullptr),
 	failedBuilding(nullptr),
-	projectInformation(nullptr),
-	model(new QStandardItemModel(this))
+	projectInformation(nullptr)
 {
-	QStringList headerLabels;
 	headerLabels.push_back("Status");
 	headerLabels.push_back("Project");
 	headerLabels.push_back("Remaining Time");
@@ -42,11 +42,9 @@ ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
 	headerLabels.push_back("Last Successful Build");
 	headerLabels.push_back("Volunteer");
 	headerLabels.push_back("Initiated By");
-	numHeaders = headerLabels.size();
 
-	model->setHorizontalHeaderLabels(headerLabels);
-
-	setModel(model);
+	setColumnCount(headerLabels.size());
+	setHorizontalHeaderLabels(headerLabels);
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, &ServerOverviewTable::customContextMenuRequested, this, &ServerOverviewTable::openContextMenu);
@@ -70,11 +68,11 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 		delete item;
 	}
 	itemPool.clear();
+	clearContents();
 
-	model->removeRows(0, model->rowCount());
 	for (const ProjectInformation& info : inProjectInformation)
 	{
-		QStandardItem* statusItem = new QStandardItem();
+		QTableWidgetItem* statusItem = new QTableWidgetItem();
 		statusItem->setText(projectStatus_toString(info.status));
 		if (projectStatus_isFailure(info.status))
 		{
@@ -100,30 +98,54 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 		}
 		itemPool.push_back(statusItem);
 
-		itemPool.push_back(new QStandardItem(info.projectName));
+		itemPool.push_back(new QTableWidgetItem(info.projectName));
 
 		if (info.isBuilding)
 		{
-			itemPool.push_back(new QStandardItem(QString::number(info.estimatedRemainingTime / 60 / 1000) + " minutes"));
+			qint32 estimatedRemainingTime = info.estimatedRemainingTime / 1000;
+			const char* timeUnit = "minute(s)";
+			if (estimatedRemainingTime < 60 && estimatedRemainingTime > -60)
+			{
+				timeUnit = "second(s)";
+			}
+			else
+			{
+				estimatedRemainingTime /= 60;
+			}
+
+			QString estimatedRemainingTimeFull;
+			QTextStream estimatedRemainingTimeStream(&estimatedRemainingTimeFull);
+			if (estimatedRemainingTime < 0)
+			{
+				estimatedRemainingTime = abs(estimatedRemainingTime);
+				estimatedRemainingTimeStream << "Taking " << estimatedRemainingTime << " " << timeUnit << " longer";
+			}
+			else
+			{
+				estimatedRemainingTimeStream << estimatedRemainingTime << " " << timeUnit;
+			}
+			estimatedRemainingTimeStream.flush();
+
+			itemPool.push_back(new QTableWidgetItem(estimatedRemainingTimeFull));
 		}
 		else
 		{
-			itemPool.push_back(new QStandardItem("-"));
+			itemPool.push_back(new QTableWidgetItem("-"));
 		}
-		itemPool.push_back(new QStandardItem(QString::number(info.inProgressFor / 60 / 1000) + " minutes"));
+		itemPool.push_back(new QTableWidgetItem(QString::number(info.inProgressFor / 60 / 1000) + " minutes"));
 
 		if (info.lastSuccessfulBuildTime != -1)
 		{
 			QDateTime lastSuccessfulBuild;
 			lastSuccessfulBuild.setMSecsSinceEpoch(info.lastSuccessfulBuildTime);
-			itemPool.push_back(new QStandardItem(lastSuccessfulBuild.toLocalTime().toString("hh:mm dd-MM-yyyy")));
+			itemPool.push_back(new QTableWidgetItem(lastSuccessfulBuild.toLocalTime().toString("hh:mm dd-MM-yyyy")));
 		}
 		else
 		{
-			itemPool.push_back(new QStandardItem("Unavailable"));
+			itemPool.push_back(new QTableWidgetItem("Unavailable"));
 		}
 
-		itemPool.push_back(new QStandardItem(info.volunteer));
+		itemPool.push_back(new QTableWidgetItem(info.volunteer));
 
 		QString initiators;
 		for (size_t i = 0; i < info.initiatedBy.size(); ++i)
@@ -142,26 +164,29 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 			initiators += info.initiatedBy[i];
 		}
 
-		itemPool.push_back(new QStandardItem(initiators));
+		itemPool.push_back(new QTableWidgetItem(initiators));
 	}
 
     const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
 	for (qint32 row = 0; row < numProjects; ++row)
 	{
-		for (qint32 column = 0; column < numHeaders; ++column)
+		for (qint32 column = 0; column < headerLabels.size(); ++column)
 		{
-			const qint32 itemLocationInArray = row * numHeaders + column;
-			model->setItem(row, column, itemPool[itemLocationInArray]);
+			const qint32 itemLocationInArray = row * headerLabels.size() + column;
+			QTableWidgetItem* item = itemPool[itemLocationInArray];
+			item->setToolTip(item->text());
+			setItem(row, column, itemPool[itemLocationInArray]);
 		}
 	}
+	setRowCount(numProjects);
 
 	resizeColumnsToContents();
-	horizontalHeader()->setSectionResizeMode(numHeaders - 1, QHeaderView::Stretch);
+	horizontalHeader()->setSectionResizeMode(headerLabels.size() - 1, QHeaderView::Stretch);
 }
 
 QString ServerOverviewTable::getProjectName(qint32 row)
 {
-	return model->item(row, 1)->text();
+	return item(row, 1)->text();
 }
 
 void ServerOverviewTable::openContextMenu(const QPoint& location)
