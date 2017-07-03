@@ -1,7 +1,8 @@
-@echo on
+@echo off
 
 setlocal
 
+set installer_framework="C:\Qt\Tools\QtInstallerFramework\2.0\bin"
 set zipexec="C:\Program Files\7-Zip\7z.exe"
 
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
@@ -31,15 +32,19 @@ if %errorlevel% neq 0 (
 	exit /b 1
 )
 move BuildMonitor.7z ..
+cd ..
 
-rd /S /Q "%~dp0\Packages\buildmonitor\data\"
-mkdir "%~dp0\Packages\buildmonitor\data\"
-move ..\BuildMonitor.7z .
+set data_path="%~dp0\Packages\buildmonitor\data\"
+rd /S /Q %data_path% 
+mkdir %data_path%
+
+move BuildMonitor.7z data
 
 cd %~dp0
- "C:\Qt\Tools\QtInstallerFramework\2.0\bin\binarycreator.exe" -c Config\Config.xml -p Packages BuildMonitorInstaller.exe
- if %errorlevel% neq 0 (
- 	 echo Failed creating installer.
-	 pause
-	 exit /b 1
- )
+%installer_framework%\binarycreator.exe --offline-only -c Config\Config.xml -p Packages BuildMonitorInstaller.exe
+if %errorlevel% neq 0 (
+	echo Failed creating installer.
+	pause
+	exit /b 1
+)
+
