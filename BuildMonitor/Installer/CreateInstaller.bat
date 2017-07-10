@@ -2,7 +2,7 @@
 
 setlocal
 
-set installer_framework="C:\Qt\Tools\QtInstallerFramework\2.0\bin"
+set installer_framework=C:\Qt\Tools\QtInstallerFramework\2.0\bin
 set zipexec="C:\Program Files\7-Zip\7z.exe"
 
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
