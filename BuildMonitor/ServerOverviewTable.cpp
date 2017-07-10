@@ -167,15 +167,16 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 		itemPool.push_back(new QTableWidgetItem(initiators));
 	}
 
-    const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
+	const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
+	const qint32 numHeaders = headerLabels.size();
 	for (qint32 row = 0; row < numProjects; ++row)
 	{
-		for (qint32 column = 0; column < headerLabels.size(); ++column)
+		for (qint32 column = 0; column < numHeaders; ++column)
 		{
-			const qint32 itemLocationInArray = row * headerLabels.size() + column;
+			const qint32 itemLocationInArray = row * numHeaders + column;
 			QTableWidgetItem* item = itemPool[itemLocationInArray];
 			item->setToolTip(item->text());
-			setItem(row, column, itemPool[itemLocationInArray]);
+			setItem(row, column, item);
 		}
 	}
 	setRowCount(numProjects);
