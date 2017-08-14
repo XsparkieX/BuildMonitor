@@ -18,6 +18,7 @@
 #pragma once
 
 #include "Server.h"
+
 #include <QtWidgets/QMainWindow>
 
 #include "ui_BuildMonitorServer.h"
@@ -30,6 +31,8 @@ public:
 	BuildMonitorServer(QWidget *parent = Q_NULLPTR);
 
 private:
+	void onFixInfoChanged(const std::vector<FixInfo>& fixInfo);
+
 	Ui::BuildMonitorServerClass ui;
 	Server server;
 };

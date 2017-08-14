@@ -17,26 +17,21 @@
 
 #pragma once
 
+#include <qstandarditemmodel.h>
+#include <qtablewidget.h>
+
 #include "FixInfo.h"
 
-#include <qtcpsocket.h>
-#include <qthread.h>
-
-class AcceptThread : public QThread
+class FixOverviewTable : public QTableWidget
 {
 	Q_OBJECT
 
 public:
-	AcceptThread(qintptr socketDescriptor, class Server& inServer, QObject* parent);
+	FixOverviewTable(QWidget* parent);
 
-	void run();
-
-signals:
-	void fixStarted(const FixInfo& fixInfo);
-	void markFixed(const QString& projectName, const qint32 buildNumber);
-	void error(QTcpSocket::SocketError socketError);
+	void setFixInformation(const std::vector<FixInfo>& fixInformation);
 
 private:
-	class Server& server;
-	qintptr socketDescriptor;
+	std::vector<class QTableWidgetItem*> itemPool;
+	QStringList headerLabels;
 };

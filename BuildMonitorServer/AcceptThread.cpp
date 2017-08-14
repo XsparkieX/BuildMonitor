@@ -55,7 +55,7 @@ void AcceptThread::run()
 					requestInfo["build_number"].toInt()
 				};
 
-				server.fixStarted(fixInfo);
+				emit fixStarted(fixInfo);
 			}
 			else if (root["request_type"].toString() == "fix_state")
 			{
@@ -92,10 +92,10 @@ void AcceptThread::run()
 			else if (root["request_type"].toString() == "mark_fixed")
 			{
 				const QJsonObject requestInfo = root["request_info"].toObject();
-				server.markFixed(requestInfo["project_name"].toString(), requestInfo["build_number"].toInt());
+				emit markFixed(requestInfo["project_name"].toString(), requestInfo["build_number"].toInt());
 			}
 		}
 	}
-	
+
 	socket.disconnectFromHost();
 }

@@ -17,10 +17,19 @@
 
 #include "BuildMonitorServer.h"
 
+#include "FixOverviewTable.h"
+
 BuildMonitorServer::BuildMonitorServer(QWidget *parent) :
 	QMainWindow(parent),
 	server(this)
 {
 	ui.setupUi(this);
+
+	connect(&server, &Server::fixInfoChanged, this, &BuildMonitorServer::onFixInfoChanged);
 	server.listen(QHostAddress::Any, 1080);
+}
+
+void BuildMonitorServer::onFixInfoChanged(const std::vector<FixInfo>& fixInfo)
+{
+	ui.fixOverviewTable->setFixInformation(fixInfo);
 }

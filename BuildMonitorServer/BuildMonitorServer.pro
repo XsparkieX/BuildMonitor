@@ -16,12 +16,14 @@ unix:QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp\
     AcceptThread.cpp \
     BuildMonitorServer.cpp \
-    Server.cpp
+    Server.cpp \
+    FixOverviewTable.cpp
 
 HEADERS  += AcceptThread.h \
     BuildMonitorServer.h \
     FixInfo.h \
-    Server.h
+    Server.h \
+    FixOverviewTable.h
 
 RESOURCES += \
     BuildMonitorServer.qrc

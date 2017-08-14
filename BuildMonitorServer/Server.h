@@ -30,14 +30,17 @@ public:
 	Server(QObject* parent);
 	~Server();
 
-	void fixStarted(const struct FixInfo& fixInfo);
-	void markFixed(const QString& projectName, const qint32 buildNumber);
 	std::vector<FixInfo> getProjectsState(const std::vector<QString>& projects);
+
+Q_SIGNALS:
+	void fixInfoChanged(const std::vector<FixInfo>& fixInfos);
 
 protected:
 	virtual void incomingConnection(qintptr socketDescriptor) override;
 
 private:
+	void onFixStarted(const struct FixInfo& fixInfo);
+	void onMarkFixed(const QString& projectName, const qint32 buildNumber);
 	void onThreadFinished();
 
 	QMutex fixInfoLock;

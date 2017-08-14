@@ -22,6 +22,7 @@
 Server::Server(QObject* parent) :
 	QTcpServer(parent)
 {
+	qRegisterMetaType<FixInfo>();
 }
 
 Server::~Server()
@@ -30,38 +31,6 @@ Server::~Server()
 	{
 		element->wait(10000);
 	}
-}
-
-void Server::fixStarted(const FixInfo& fixInfo)
-{
-	fixInfoLock.lock();
-
-	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
-		[&fixInfo](const FixInfo& info) { return info.projectName == fixInfo.projectName; });
-	if (foundElement != fixInfos.end())
-	{
-		*foundElement = fixInfo;
-	}
-	else
-	{
-		fixInfos.emplace_back(fixInfo);
-	}
-
-	fixInfoLock.unlock();
-}
-
-void Server::markFixed(const QString& projectName, const qint32 buildNumber)
-{
-	fixInfoLock.lock();
-
-	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
-		[&projectName, &buildNumber](const FixInfo& info) { return info.projectName == projectName && info.buildNumber < buildNumber; });
-	if (foundElement != fixInfos.end())
-	{
-		fixInfos.erase(foundElement);
-	}
-
-	fixInfoLock.unlock();
 }
 
 std::vector<FixInfo> Server::getProjectsState(const std::vector<QString>& projects)
@@ -91,9 +60,47 @@ std::vector<FixInfo> Server::getProjectsState(const std::vector<QString>& projec
 void Server::incomingConnection(qintptr socketDescriptor)
 {
 	AcceptThread* thread = new AcceptThread(socketDescriptor, *this, this);
+	connect(thread, &AcceptThread::fixStarted, this, &Server::onFixStarted);
+	connect(thread, &AcceptThread::markFixed, this, &Server::onMarkFixed);
 	connect(thread, &AcceptThread::finished, this, &Server::onThreadFinished);
 	thread->start();
 	threads.push_back(thread);
+}
+
+void Server::onFixStarted(const FixInfo& fixInfo)
+{
+	fixInfoLock.lock();
+
+	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
+		[&fixInfo](const FixInfo& info) { return info.projectName == fixInfo.projectName; });
+	if (foundElement != fixInfos.end())
+	{
+		*foundElement = fixInfo;
+	}
+	else
+	{
+		fixInfos.emplace_back(fixInfo);
+	}
+
+	emit fixInfoChanged(fixInfos);
+
+	fixInfoLock.unlock();
+}
+
+void Server::onMarkFixed(const QString& projectName, const qint32 buildNumber)
+{
+	fixInfoLock.lock();
+
+	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
+		[&projectName, &buildNumber](const FixInfo& info) { return info.projectName == projectName && info.buildNumber < buildNumber; });
+	if (foundElement != fixInfos.end())
+	{
+		fixInfos.erase(foundElement);
+	}
+
+	emit fixInfoChanged(fixInfos);
+
+	fixInfoLock.unlock();
 }
 
 void Server::onThreadFinished()

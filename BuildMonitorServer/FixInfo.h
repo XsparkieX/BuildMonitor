@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <qmetatype.h>
 #include <qstring.h>
 
 struct FixInfo
@@ -25,3 +26,5 @@ struct FixInfo
 	QString userName;
 	qint32 buildNumber;
 };
+
+Q_DECLARE_METATYPE(FixInfo);
