@@ -168,6 +168,7 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 	}
 
 	const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
+	setRowCount(numProjects);
 	const qint32 numHeaders = headerLabels.size();
 	for (qint32 row = 0; row < numProjects; ++row)
 	{
@@ -179,7 +180,6 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 			setItem(row, column, item);
 		}
 	}
-	setRowCount(numProjects);
 
 	resizeColumnsToContents();
 	horizontalHeader()->setSectionResizeMode(headerLabels.size() - 1, QHeaderView::Stretch);
