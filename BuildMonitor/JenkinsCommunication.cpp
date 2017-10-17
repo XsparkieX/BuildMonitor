@@ -262,17 +262,13 @@ void JenkinsCommunication::onProjectInformationReceived()
 
 			info.buildNumber = root["number"].toInt();
 
-			const QJsonArray items = root["changeSet"].toObject()["items"].toArray();
-			for (const QJsonValue& item : items)
+			const QJsonArray culprits = root["culprits"].toArray();
+			for (const QJsonValue culprit : culprits)
 			{
-				if (item.isObject())
+				if (culprit.isObject())
 				{
-					const QString name = item.toObject()["author"].toObject()["fullName"].toString();
-					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end() &&
-						std::find(info.initiatedBy.begin(), info.initiatedBy.end(), name) == info.initiatedBy.end())
-					{
-						info.initiatedBy.emplace_back(name);
-					}
+					const QString name = culprit.toObject()["fullName"].toString();
+					info.initiatedBy.emplace_back(name);
 				}
 			}
 			std::sort(info.initiatedBy.begin(), info.initiatedBy.end());
