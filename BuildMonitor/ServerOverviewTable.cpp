@@ -187,6 +187,10 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 
 QString ServerOverviewTable::getProjectName(qint32 row)
 {
+	if (row == -1)
+	{
+		return "";
+	}
 	return item(row, 1)->text();
 }
 
@@ -195,7 +199,7 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	QPoint globalLocation = viewport()->mapToGlobal(location);
 
 	QMenu contextMenu;
-	
+
 	QAction* volunteerToFixAction = contextMenu.addAction("Volunteer to Fix");
 	QString projectName = getProjectName(currentIndex().row());
 	bool volunteerOptionEnabled = false;
