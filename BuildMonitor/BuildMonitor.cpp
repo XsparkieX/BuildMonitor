@@ -83,12 +83,12 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	connect(ui.serverOverviewTable, &ServerOverviewTable::viewBuildLog, this, &BuildMonitor::onViewBuildLog);
 
 	tray->setContextMenu(trayContextMenu);
-	tray->show();
 	connect(tray, &QSystemTrayIcon::messageClicked, this, &BuildMonitor::showWindow);
 	connect(tray, &QSystemTrayIcon::activated, this, &BuildMonitor::onTrayActivated);
 	connect(trayContextMenu, &TrayContextMenu::contextActionExecuted, this, &BuildMonitor::onTrayContextActionExecuted);
 
 	updateIcons();
+	tray->show();
 
 	if (QCoreApplication::arguments().contains("--minimized"))
 	{
@@ -433,12 +433,12 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 		EProjectStatus::Disabled,
 		EProjectStatus::Unknown
 	};
-    size_t newStatusIndex = priorityList.size() - 1;
+	size_t newStatusIndex = priorityList.size() - 1;
 
 	bool isBuilding = false;
 	for (const ProjectInformation& info : projectInformation)
 	{
-        size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
+		size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
 		if (statusIndex < newStatusIndex)
 		{
 			newStatusIndex = statusIndex;
