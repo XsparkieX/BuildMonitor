@@ -268,7 +268,10 @@ void JenkinsCommunication::onProjectInformationReceived()
 				if (culprit.isObject())
 				{
 					const QString name = culprit.toObject()["fullName"].toString();
-					info.initiatedBy.emplace_back(name);
+					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end())
+					{
+						info.initiatedBy.emplace_back(name);
+					}
 				}
 			}
 			std::sort(info.initiatedBy.begin(), info.initiatedBy.end());
