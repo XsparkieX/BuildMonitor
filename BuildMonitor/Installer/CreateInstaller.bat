@@ -24,7 +24,7 @@ if %errorlevel% neq 0 (
 	exit /b 1
 )
 
-cd "%~dp0\Packages\buildmonitor\data\"
+cd /d "%~dp0\Packages\buildmonitor\data\"
 %zipexec% a BuildMonitor.7z *
 if %errorlevel% neq 0 (
 	echo Failed creating 7z archive.
@@ -32,15 +32,16 @@ if %errorlevel% neq 0 (
 	exit /b 1
 )
 move BuildMonitor.7z ..
-cd ..
+cd /d ..
 
 set data_path="%~dp0\Packages\buildmonitor\data\"
 rd /S /Q %data_path% 
 mkdir %data_path%
 
-move BuildMonitor.7z data
+move BuildMonitor.7z %data_path%
 
-cd %~dp0
+cd /d %~dp0%
+
 %installer_framework%\binarycreator.exe --offline-only -c Config\Config.xml -p Packages BuildMonitorInstaller.exe
 if %errorlevel% neq 0 (
 	echo Failed creating installer.
