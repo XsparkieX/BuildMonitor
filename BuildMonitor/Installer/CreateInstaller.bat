@@ -7,7 +7,7 @@ set zipexec="C:\Program Files\7-Zip\7z.exe"
 
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-MSBuild.exe "%~dp0..\BuildMonitor.vcxproj" /nologo /p:Configuration=Release
+MSBuild.exe "%~dp0..\BuildMonitor.vcxproj" /nologo /t:Rebuild /p:Configuration=Release
 if %errorlevel% neq 0 (
 	echo Project failed to compile.
 	pause
