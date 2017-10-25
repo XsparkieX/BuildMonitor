@@ -175,6 +175,10 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					}
 
 					info.projectUrl = object["url"].toString();
+					if (info.projectUrl.host() != reply->url().host())
+					{
+						info.projectUrl.setHost(reply->url().host());
+					}
 					bool addToList = true;
 					const QString buildStatus = object["color"].toString();
 					if (buildStatus.startsWith("blue"))
