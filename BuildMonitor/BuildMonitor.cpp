@@ -360,62 +360,65 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 			return now.status == EProjectStatus::Succeeded && projectStatus_isFailure(last.status);
 		};
 
-		auto showMessage = [this](const QString& projectName, const std::vector<QString>& initiators, bool broken)
+		if (tray->supportsMessages())
 		{
-			QString message(broken ? "Broken by: " : "Fixed by: ");
-			if (initiators.empty())
+			auto showMessage = [this](const QString& projectName, const std::vector<QString>& initiators, bool broken)
 			{
-				message += "Unknown";
+				QString message(broken ? "Broken by: " : "Fixed by: ");
+				if (initiators.empty())
+				{
+					message += "Unknown";
+				}
+				else
+				{
+					for (size_t i = 0; i < initiators.size(); ++i)
+					{
+						if (i != 0)
+						{
+							if (i == initiators.size() - 1)
+							{
+								message += " and/or ";
+							}
+							else
+							{
+								message += ", ";
+							}
+						}
+
+						message += initiators[i];
+					}
+				}
+				tray->showMessage(projectName, message, broken ? QSystemTrayIcon::Critical : QSystemTrayIcon::Information, 3000);
+			};
+
+			if (projectInformation.size() < index && lastProjectInformation.size() < index &&
+					projectInformation[index].projectName == lastProjectInformation[index].projectName)
+			{
+				if (switchedToFailed(lastProjectInformation[index], projectInformation[index]))
+				{
+					showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, true);
+				}
+				else if (switchedToSuccess(lastProjectInformation[index], projectInformation[index]))
+				{
+					showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, false);
+				}
 			}
 			else
 			{
-				for (size_t i = 0; i < initiators.size(); ++i)
+				for (const ProjectInformation& info : projectInformation)
 				{
-					if (i != 0)
+					if (info.projectName == lastProjectInformation[index].projectName)
 					{
-						if (i == initiators.size() - 1)
+						if (switchedToFailed(lastProjectInformation[index], info))
 						{
-							message += " and/or ";
+							showMessage(info.projectName, info.initiatedBy, true);
 						}
-						else
+						else if (switchedToSuccess(lastProjectInformation[index], info))
 						{
-							message += ", ";
+							showMessage(info.projectName, info.initiatedBy, false);
 						}
+						break;
 					}
-
-					message += initiators[i];
-				}
-			}
-			tray->showMessage(projectName, message, broken ? QSystemTrayIcon::Critical : QSystemTrayIcon::Information);
-		};
-
-		if (projectInformation.size() < index && lastProjectInformation.size() < index &&
-			projectInformation[index].projectName == lastProjectInformation[index].projectName)
-		{
-			if (switchedToFailed(lastProjectInformation[index], projectInformation[index]))
-			{
-				showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, true);
-			}
-			else if (switchedToSuccess(lastProjectInformation[index], projectInformation[index]))
-			{
-				showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, false);
-			}
-		}
-		else
-		{
-			for (const ProjectInformation& info : projectInformation)
-			{
-				if (info.projectName == lastProjectInformation[index].projectName)
-				{
-					if (switchedToFailed(lastProjectInformation[index], info))
-					{
-						showMessage(info.projectName, info.initiatedBy, true);
-					}
-					else if (switchedToSuccess(lastProjectInformation[index], info))
-					{
-						showMessage(info.projectName, info.initiatedBy, false);
-					}
-					break;
 				}
 			}
 		}
