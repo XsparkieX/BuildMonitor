@@ -38,7 +38,8 @@ public:
 	std::vector<QString> ignoreUserList;
 	qint32 refreshIntervalInSeconds;
 	bool showDisabledProjects;
-	QRegExp projectRegEx;
+	QRegExp projectIncludeRegEx;
+	QRegExp projectExcludeRegEx;
 	QString showProgressForProject;
 	bool closeToTrayOnStartup;
 	bool windowMaximized;

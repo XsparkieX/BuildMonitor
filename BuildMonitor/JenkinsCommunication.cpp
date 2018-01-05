@@ -67,9 +67,10 @@ void JenkinsCommunication::setShowDisabledProjects(bool inShowDisabledProjects)
 	showDisabledProjects = inShowDisabledProjects;
 }
 
-void JenkinsCommunication::setProjectIncludePattern(const QRegExp& regExp)
+void JenkinsCommunication::setProjectRegExPatterns(const QRegExp& regExpInclude, const QRegExp& regExpExclude)
 {
-	projectIncludePattern = regExp;
+	projectIncludePattern = regExpInclude;
+	projectExcludePattern = regExpExclude;
 }
 
 const std::vector<ProjectInformation>& JenkinsCommunication::getProjectInformation() const
@@ -169,7 +170,8 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					ProjectInformation info;
 					info.projectName = object["name"].toString();
 
-					if (!projectIncludePattern.exactMatch(info.projectName))
+					if (!projectIncludePattern.exactMatch(info.projectName) ||
+						projectExcludePattern.exactMatch(info.projectName))
 					{
 						continue;
 					}

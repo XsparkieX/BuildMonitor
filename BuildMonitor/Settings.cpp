@@ -29,7 +29,7 @@ Settings::Settings(QObject* parent) :
 	fixServerAddress("jenkins:1080"),
 	refreshIntervalInSeconds(60),
 	showDisabledProjects(false),
-	projectRegEx(".*"),
+	projectIncludeRegEx(".*"),
 	closeToTrayOnStartup(false),
 	windowMaximized(false),
 	windowSizeX(640),
@@ -97,10 +97,24 @@ bool Settings::loadSettings()
 		showDisabledProjects = showDisabledProjectsValue.toBool();
 	}
 
+	/* Legacy support */
 	QJsonValue projectRegExValue = root.value("projectRegEx");
 	if (projectRegExValue.isString())
 	{
-		projectRegEx.setPattern(projectRegExValue.toString());
+		projectIncludeRegEx.setPattern(projectRegExValue.toString());
+	}
+	/* End legacy support */
+	
+	QJsonValue projectIncludeRegExValue = root.value("projectIncludeRegEx");
+	if (projectIncludeRegExValue.isString())
+	{
+		projectIncludeRegEx.setPattern(projectIncludeRegExValue.toString());
+	}
+
+	QJsonValue projectExcludeRegExValue = root.value("projectExcludeRegEx");
+	if (projectExcludeRegExValue.isString())
+	{
+		projectExcludeRegEx.setPattern(projectExcludeRegExValue.toString());
 	}
 
 	QJsonValue showProgressForProjectValue = root.value("showProgressForProject");
@@ -173,7 +187,9 @@ void Settings::saveSettings()
 
 	root.insert("showDisabledProjects", showDisabledProjects);
 
-	root.insert("projectRegEx", projectRegEx.pattern());
+	root.insert("projectIncludeRegEx", projectIncludeRegEx.pattern());
+
+	root.insert("projectExcludeRegEx", projectExcludeRegEx.pattern());
 
 	root.insert("showProgressForProject", showProgressForProject);
 

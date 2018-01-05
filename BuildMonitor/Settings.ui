@@ -113,17 +113,27 @@
     <item row="5" column="1">
      <widget class="QLineEdit" name="projectIncludeRegExp"/>
     </item>
-    <item row="6" column="0">
+	<item row="6" column="0">
+     <widget class="QLabel" name="projectExcludeRegExpLabel">
+      <property name="text">
+       <string>Hide projects using regular expression</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1">
+     <widget class="QLineEdit" name="projectExcludeRegExp"/>
+    </item>
+    <item row="7" column="0">
      <widget class="QLabel" name="label_3">
       <property name="text">
        <string>Show progress for project</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
+    <item row="7" column="1">
      <widget class="QLineEdit" name="showProgressForProject"/>
     </item>
-    <item row="7" column="0">
+    <item row="8" column="0">
      <widget class="QCheckBox" name="closeToTrayOnStartup">
       <property name="text">
        <string>Close to system tray on startup.</string>
@@ -140,6 +150,7 @@
   <tabstop>showDisabledBuilds</tabstop>
   <tabstop>refreshInterval</tabstop>
   <tabstop>projectIncludeRegExp</tabstop>
+  <tabstop>projectExcludeRegExp</tabstop>
   <tabstop>showProgressForProject</tabstop>
   <tabstop>closeToTrayOnStartup</tabstop>
  </tabstops>

@@ -33,7 +33,7 @@ public:
 	void setRefreshInterval(qint32 refreshInterval);
 	void setIgnoreUserList(const std::vector<QString>& inIgnoreUserList);
 	void setShowDisabledProjects(bool inShowDisabledProjects);
-	void setProjectIncludePattern(const QRegExp& regExp);
+	void setProjectRegExPatterns(const QRegExp& regExpInclude, const QRegExp& regExpExclude);
 	const std::vector<ProjectInformation>& getProjectInformation() const;
 
 	void refresh();
@@ -57,6 +57,7 @@ private:
 	std::vector<QString> ignoreUserList;
 	bool showDisabledProjects;
 	QRegExp projectIncludePattern;
+	QRegExp projectExcludePattern;
 
 	class QNetworkAccessManager* networkAccessManager;
 	class QTimer* refreshTimer;

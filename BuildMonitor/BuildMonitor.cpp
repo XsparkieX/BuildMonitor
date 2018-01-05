@@ -315,7 +315,7 @@ void BuildMonitor::onSettingsChanged()
 {
 	jenkins->setIgnoreUserList(settings.ignoreUserList);
 	jenkins->setShowDisabledProjects(settings.showDisabledProjects);
-	jenkins->setProjectIncludePattern(settings.projectRegEx);
+	jenkins->setProjectRegExPatterns(settings.projectIncludeRegEx, settings.projectExcludeRegEx);
 	jenkins->setServerURLs(settings.serverURLs);
 	jenkins->setRefreshInterval(settings.refreshIntervalInSeconds);
 
