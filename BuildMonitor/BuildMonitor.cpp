@@ -251,9 +251,9 @@ void BuildMonitor::updateTaskbarProgress()
 void BuildMonitor::showWindow()
 {
 	show();
+	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 	raise();
 	activateWindow();
-	setFocus();
 }
 
 void BuildMonitor::addToStartup()
