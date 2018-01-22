@@ -17,39 +17,22 @@
 
 #pragma once
 
-#include <qdir.h>
-#include <qobject.h>
-#include <qstring.h>
-#include <qurl.h>
+#include <QtWidgets/qdialog.h>
+#include "ui_ProjectPicker.h"
 
-class Settings : public QObject
+class ProjectPickerDialog : public QDialog
 {
 	Q_OBJECT
+
 public:
-	Settings(QObject* parent = Q_NULLPTR);
+	ProjectPickerDialog(QWidget* parent, class Settings& inSettings, const std::vector<QString>& inProjects);
 
-	bool loadSettings();
-	void saveSettings();
+private:
+	void constructListEntries();
 
-	const QDir projectSettingsFolder;
+	void onAccepted();
 
-	std::vector<QUrl> serverURLs;
-	QString fixServerAddress;
-	std::vector<QString> ignoreUserList;
-	qint32 refreshIntervalInSeconds;
-	bool showDisabledProjects;
-	bool useRegExProjectFilter;
-	QRegExp projectIncludeRegEx;
-	QRegExp projectExcludeRegEx;
-	std::vector<QString> enabledProjectList;
-	QString showProgressForProject;
-	bool closeToTrayOnStartup;
-	bool windowMaximized;
-	qint32 windowSizeX;
-	qint32 windowSizeY;
-	qint32 windowPosX;
-	qint32 windowPosY;
-
-Q_SIGNALS:
-	void settingsChanged();
+	class Settings& settings;
+	const std::vector<QString>& projects;
+	Ui::ProjectPickerDialog ui;
 };

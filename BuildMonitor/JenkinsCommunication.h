@@ -29,12 +29,11 @@ class JenkinsCommunication : public QObject
 public:
 	JenkinsCommunication(QObject* parent);
 
-	void setServerURLs(const std::vector<QUrl>& inServerURL);
-	void setRefreshInterval(qint32 refreshInterval);
-	void setIgnoreUserList(const std::vector<QString>& inIgnoreUserList);
-	void setShowDisabledProjects(bool inShowDisabledProjects);
-	void setProjectRegExPatterns(const QRegExp& regExpInclude, const QRegExp& regExpExclude);
+	void setSettings(const class Settings* settings);
+	void refreshSettings();
+	
 	const std::vector<ProjectInformation>& getProjectInformation() const;
+	const std::vector<QString>& getAllAvailableProjects() const;
 
 	void refresh();
 
@@ -52,12 +51,9 @@ private:
 	void onLastSuccesfulProjectInformationReceived();
 
 	std::vector<ProjectInformation> projectInformation;
+	std::vector<QString> allAvailableProjects;
 
-	std::vector<QUrl> serverURLs;
-	std::vector<QString> ignoreUserList;
-	bool showDisabledProjects;
-	QRegExp projectIncludePattern;
-	QRegExp projectExcludePattern;
+	const class Settings* settings;
 
 	class QNetworkAccessManager* networkAccessManager;
 	class QTimer* refreshTimer;

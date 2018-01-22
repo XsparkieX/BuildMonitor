@@ -30,6 +30,8 @@ Settings::Settings(QObject* parent) :
 	refreshIntervalInSeconds(60),
 	showDisabledProjects(false),
 	projectIncludeRegEx(".*"),
+	useRegExProjectFilter(false),
+	enabledProjectList(),
 	closeToTrayOnStartup(false),
 	windowMaximized(false),
 	windowSizeX(640),
@@ -104,7 +106,13 @@ bool Settings::loadSettings()
 		projectIncludeRegEx.setPattern(projectRegExValue.toString());
 	}
 	/* End legacy support */
-	
+
+	QJsonValue useRegExProjectFilterValue = root.value("useRegExProjectFilter");
+	if (useRegExProjectFilterValue.isBool())
+	{
+		useRegExProjectFilter = useRegExProjectFilterValue.toBool();
+	}
+
 	QJsonValue projectIncludeRegExValue = root.value("projectIncludeRegEx");
 	if (projectIncludeRegExValue.isString())
 	{
@@ -115,6 +123,20 @@ bool Settings::loadSettings()
 	if (projectExcludeRegExValue.isString())
 	{
 		projectExcludeRegEx.setPattern(projectExcludeRegExValue.toString());
+	}
+
+	QJsonValue enabledProjectListValue = root.value("enabledProjectList");
+	if (enabledProjectListValue.isArray())
+	{
+		enabledProjectList.clear();
+		QJsonArray enabledProjectListArray = enabledProjectListValue.toArray();
+		for (const QJsonValue& enabledProject : enabledProjectListArray)
+		{
+			if (enabledProject.isString())
+			{
+				enabledProjectList.emplace_back(enabledProject.toString());
+			}
+		}
 	}
 
 	QJsonValue showProgressForProjectValue = root.value("showProgressForProject");
@@ -187,9 +209,18 @@ void Settings::saveSettings()
 
 	root.insert("showDisabledProjects", showDisabledProjects);
 
+	root.insert("useRegExProjectFilter", useRegExProjectFilter);
+
 	root.insert("projectIncludeRegEx", projectIncludeRegEx.pattern());
 
 	root.insert("projectExcludeRegEx", projectExcludeRegEx.pattern());
+
+	QJsonArray enabledProjectListArray;
+	for (const QString& project : enabledProjectList)
+	{
+		enabledProjectListArray.push_back(project);
+	}
+	root.insert("enabledProjectList", enabledProjectListArray);
 
 	root.insert("showProgressForProject", showProgressForProject);
 

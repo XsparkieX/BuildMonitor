@@ -41,6 +41,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, class Settings& inSettings) :
 	}
 	ui.nameIgnoreList->setText(ignoreUserList);
 	ui.refreshInterval->setValue(inSettings.refreshIntervalInSeconds);
+	ui.useRegExProjectFilter->setChecked(inSettings.useRegExProjectFilter);
 	ui.projectIncludeRegExp->setText(inSettings.projectIncludeRegEx.pattern());
 	ui.projectExcludeRegExp->setText(inSettings.projectExcludeRegEx.pattern());
 	ui.showDisabledBuilds->setChecked(inSettings.showDisabledProjects);
@@ -73,6 +74,7 @@ void SettingsDialog::onButtonClicked(QAbstractButton* button)
 			settings.ignoreUserList.emplace_back(user.trimmed());
 		}
 		settings.refreshIntervalInSeconds = ui.refreshInterval->value();
+		settings.useRegExProjectFilter = ui.useRegExProjectFilter->isChecked();
 		settings.projectIncludeRegEx.setPattern(ui.projectIncludeRegExp->text());
 		settings.projectExcludeRegEx.setPattern(ui.projectExcludeRegExp->text());
 		settings.showDisabledProjects = ui.showDisabledBuilds->isChecked();

@@ -19,6 +19,7 @@
 
 #include "BuildMonitorServerCommunication.h"
 #include "JenkinsCommunication.h"
+#include "ProjectPickerDialog.h"
 #include "ProjectInformation.h"
 #include "Settings.h"
 #include "SettingsDialog.h"
@@ -46,7 +47,6 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 #ifdef _MSC_VER
 	winTaskbarButton(new QWinTaskbarButton(this)),
 #endif
-	settingsDialog(nullptr),
 	buildMonitorServerCommunication(new BuildMonitorServerCommunication(this)),
 	jenkins(new JenkinsCommunication(this)),
 	projectBuildStatusGlobal(EProjectStatus::Unknown),
@@ -57,6 +57,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 		&failedBuildIcon, &failedBuildInProgressIcon);
 
 	connect(&settings, &Settings::settingsChanged, this, &BuildMonitor::onSettingsChanged);
+	jenkins->setSettings(&settings);
 	if (!settings.loadSettings())
 	{
 		onSettingsChanged();
@@ -77,7 +78,8 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	connect(ui.actionAdd_to_Startup, &QAction::triggered, this, &BuildMonitor::addToStartup);
 	connect(ui.actionRemove_from_Startup, &QAction::triggered, this, &BuildMonitor::removeFromStartup);
 	connect(ui.actionExit, &QAction::triggered, this, &BuildMonitor::exit);
-	connect(ui.actionSettings, &QAction::triggered, this, &BuildMonitor::showSettings);
+	connect(ui.actionSettings, &QAction::triggered, this, &BuildMonitor::showSettingsDialog);
+	connect(ui.actionProjects, &QAction::triggered, this, &BuildMonitor::showProjectsDialog);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::doubleClicked, this, &BuildMonitor::onTableRowDoubleClicked);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::volunteerToFix, this, &BuildMonitor::onVolunteerToFix);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::viewBuildLog, this, &BuildMonitor::onViewBuildLog);
@@ -283,13 +285,18 @@ void BuildMonitor::exit()
 	close();
 }
 
-void BuildMonitor::showSettings()
+void BuildMonitor::showSettingsDialog()
 {
-	if (!settingsDialog)
-	{
-		settingsDialog = new SettingsDialog(this, settings);
-	}
+	auto settingsDialog = new SettingsDialog(this, settings);
+	settingsDialog->setAttribute(Qt::WA_DeleteOnClose);
 	settingsDialog->show();
+}
+
+void BuildMonitor::showProjectsDialog()
+{
+	auto projectsDialog = new ProjectPickerDialog(this, settings, jenkins->getAllAvailableProjects());
+	projectsDialog->setAttribute(Qt::WA_DeleteOnClose);
+	projectsDialog->show();
 }
 
 void BuildMonitor::setWindowPositionAndSize()
@@ -313,11 +320,7 @@ void BuildMonitor::setWindowPositionAndSize()
 
 void BuildMonitor::onSettingsChanged()
 {
-	jenkins->setIgnoreUserList(settings.ignoreUserList);
-	jenkins->setShowDisabledProjects(settings.showDisabledProjects);
-	jenkins->setProjectRegExPatterns(settings.projectIncludeRegEx, settings.projectExcludeRegEx);
-	jenkins->setServerURLs(settings.serverURLs);
-	jenkins->setRefreshInterval(settings.refreshIntervalInSeconds);
+	jenkins->refreshSettings();
 
 	buildMonitorServerCommunication->setServerAddress(settings.fixServerAddress);
 

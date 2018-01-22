@@ -16,29 +16,32 @@ unix:QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp\
     BuildMonitor.cpp \
     BuildMonitorServerCommunication.cpp \
+    BuildMonitorServerWorker.cpp \
     JenkinsCommunication.cpp \
+	ProjectPickerDialog.cpp \
     ServerOverviewTable.cpp \
     Settings.cpp \
     SettingsDialog.cpp \
-    BuildMonitorServerWorker.cpp \
     TrayContextMenu.cpp
 
 HEADERS  += \
     BuildMonitor.h \
     BuildMonitorServerCommunication.h \
+    BuildMonitorServerWorker.h \
     FixInformation.h \
     JenkinsCommunication.h \
+	ProjectPickerDialog.h \
     ProjectInformation.h \
     ProjectStatus.h \
     ServerOverviewTable.h \
     Settings.h \
     SettingsDialog.h \
     SingleInstanceMode.h \
-    BuildMonitorServerWorker.h \
     TrayContextAction.h \
     TrayContextMenu.h
 
 FORMS    += BuildMonitor.ui \
+	ProjectPicker.ui \
     Settings.ui
 
 RESOURCES += \

@@ -50,7 +50,8 @@ private:
 	void addToStartup();
 	void removeFromStartup();
 	void exit();
-	void showSettings();
+	void showSettingsDialog();
+	void showProjectsDialog();
 	void setWindowPositionAndSize();
 
 	void onSettingsChanged();
@@ -75,7 +76,6 @@ private:
 	class QWinTaskbarButton* winTaskbarButton;
 #endif
 	Settings settings;
-	class SettingsDialog* settingsDialog;
 	class BuildMonitorServerCommunication* buildMonitorServerCommunication;
 	class JenkinsCommunication* jenkins;
 	EProjectStatus projectBuildStatusGlobal;

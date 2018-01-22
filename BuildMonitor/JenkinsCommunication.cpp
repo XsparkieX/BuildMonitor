@@ -16,6 +16,7 @@
  */
 
 #include "JenkinsCommunication.h"
+#include "Settings.h"
 
 #include <qjsonarray.h>
 #include <qjsondocument.h>
@@ -27,7 +28,6 @@
 
 JenkinsCommunication::JenkinsCommunication(QObject* parent) :
 	QObject(parent),
-	showDisabledProjects(false),
 	networkAccessManager(new QNetworkAccessManager(this)),
 	refreshTimer(new QTimer(this)),
 	jenkinsServerRepliesCount(0),
@@ -36,17 +36,14 @@ JenkinsCommunication::JenkinsCommunication(QObject* parent) :
 	connect(refreshTimer, &QTimer::timeout, this, &JenkinsCommunication::refresh);
 }
 
-void JenkinsCommunication::setServerURLs(const std::vector<QUrl>& inServerURLs)
+void JenkinsCommunication::setSettings(const Settings* inSettings)
 {
-	if (serverURLs != inServerURLs)
-	{
-		serverURLs = inServerURLs;
-	}
+	settings = inSettings;
 }
 
-void JenkinsCommunication::setRefreshInterval(qint32 refreshInterval)
+void JenkinsCommunication::refreshSettings()
 {
-	refreshInterval *= 1000;
+	int refreshInterval = settings->refreshIntervalInSeconds * 1000;
 	if (refreshTimer->interval() != refreshInterval)
 	{
 		if (refreshTimer->isActive())
@@ -57,25 +54,14 @@ void JenkinsCommunication::setRefreshInterval(qint32 refreshInterval)
 	}
 }
 
-void JenkinsCommunication::setIgnoreUserList(const std::vector<QString>& inIgnoreUserList)
-{
-	ignoreUserList = inIgnoreUserList;
-}
-
-void JenkinsCommunication::setShowDisabledProjects(bool inShowDisabledProjects)
-{
-	showDisabledProjects = inShowDisabledProjects;
-}
-
-void JenkinsCommunication::setProjectRegExPatterns(const QRegExp& regExpInclude, const QRegExp& regExpExclude)
-{
-	projectIncludePattern = regExpInclude;
-	projectExcludePattern = regExpExclude;
-}
-
 const std::vector<ProjectInformation>& JenkinsCommunication::getProjectInformation() const
 {
 	return projectInformation;
+}
+
+const std::vector<QString>& JenkinsCommunication::getAllAvailableProjects() const
+{
+	return allAvailableProjects;
 }
 
 void JenkinsCommunication::refresh()
@@ -92,8 +78,9 @@ void JenkinsCommunication::startJenkinsServerInformationRetrieval()
 {
 	jenkinsServerRepliesCount = 0;
 	jenkinsServerReplies.clear();
+	allAvailableProjects.clear();
 	projectInformation.clear();
-	for (QUrl jenkinsRequest : serverURLs)
+	for (QUrl jenkinsRequest : settings->serverURLs)
 	{
 		jenkinsRequest.setPath("/api/json");
 		QNetworkRequest projectInformationRequest(jenkinsRequest);
@@ -170,10 +157,24 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					ProjectInformation info;
 					info.projectName = object["name"].toString();
 
-					if (!projectIncludePattern.exactMatch(info.projectName) ||
-						projectExcludePattern.exactMatch(info.projectName))
+					allAvailableProjects.emplace_back(info.projectName);
+
+					if (settings->useRegExProjectFilter)
 					{
-						continue;
+						if (!settings->projectIncludeRegEx.exactMatch(info.projectName) ||
+							settings->projectExcludeRegEx.exactMatch(info.projectName))
+						{
+							continue;
+						}
+					}
+					else
+					{
+						if (std::find(settings->enabledProjectList.begin(),
+								settings->enabledProjectList.end(), info.projectName) ==
+									settings->enabledProjectList.end())
+						{
+							continue;
+						}
 					}
 
 					info.projectUrl = object["url"].toString();
@@ -197,7 +198,7 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					}
 					else if (buildStatus.startsWith("disabled"))
 					{
-						addToList = showDisabledProjects;
+						addToList = settings->showDisabledProjects;
 						info.status = EProjectStatus::Disabled;
 					}
 					else if (buildStatus.startsWith("aborted"))
@@ -274,7 +275,7 @@ void JenkinsCommunication::onProjectInformationReceived()
 				if (culprit.isObject())
 				{
 					const QString name = culprit.toObject()["fullName"].toString();
-					if (std::find(ignoreUserList.begin(), ignoreUserList.end(), name) == ignoreUserList.end())
+					if (std::find(settings->ignoreUserList.begin(), settings->ignoreUserList.end(), name) == settings->ignoreUserList.end())
 					{
 						info.initiatedBy.emplace_back(name);
 					}
@@ -299,6 +300,8 @@ void JenkinsCommunication::onProjectInformationReceived()
 	{
 		return lhs.projectName < rhs.projectName;
 	});
+
+	std::sort(allAvailableProjects.begin(), allAvailableProjects.end());
 
 	startLastSuccesfulProjectInformationRetrieval();
 }
