@@ -29,8 +29,8 @@ Settings::Settings(QObject* parent) :
 	fixServerAddress("jenkins:1080"),
 	refreshIntervalInSeconds(60),
 	showDisabledProjects(false),
-	projectIncludeRegEx(".*"),
 	useRegExProjectFilter(false),
+	projectIncludeRegEx(".*"),
 	enabledProjectList(),
 	closeToTrayOnStartup(false),
 	windowMaximized(false),
@@ -52,7 +52,7 @@ bool Settings::loadSettings()
 
 	QJsonDocument settingsJson = QJsonDocument::fromJson(settingsFile.readAll());
 	QJsonObject root = settingsJson.object();
-	
+
 	QJsonValue serverURLListValue = root.value("serverURLList");
 	if (serverURLListValue.isArray())
 	{
@@ -182,7 +182,7 @@ bool Settings::loadSettings()
 	}
 
 	settingsChanged();
-	
+
 	return true;
 }
 
