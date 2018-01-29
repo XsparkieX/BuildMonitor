@@ -13,10 +13,9 @@ if %errorlevel% neq 0 (
 	pause
 	exit /b 1
 )
-
 rd /S /Q "%~dp0\Packages\buildmonitor\data\"
 mkdir "%~dp0\Packages\buildmonitor\data\"
-copy "%~dp0..\x64\Release\BuildMonitor.exe" "%~dp0\Packages\buildmonitor\data\"
+copy "%~dp0..\release\BuildMonitor.exe" "%~dp0\Packages\buildmonitor\data\"
 "C:\Qt\5.9\msvc2017_64\bin\windeployqt.exe" "%~dp0\Packages\buildmonitor\data\BuildMonitor.exe"
 if %errorlevel% neq 0 (
 	echo Failed to generate dependencies.
@@ -35,7 +34,7 @@ move BuildMonitor.7z ..
 cd /d ..
 
 set data_path="%~dp0\Packages\buildmonitor\data\"
-rd /S /Q %data_path% 
+rd /S /Q %data_path%
 mkdir %data_path%
 
 move BuildMonitor.7z %data_path%
@@ -48,4 +47,3 @@ if %errorlevel% neq 0 (
 	pause
 	exit /b 1
 )
-
