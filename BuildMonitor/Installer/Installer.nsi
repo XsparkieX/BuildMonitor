@@ -9,6 +9,8 @@ InstallDirRegKey HKLM "Software\BuildMonitor" "Install_Dir"
 RequestExecutionLevel admin
 LicenseData "..\..\LICENSE"
 OutFile "BuildMonitor - ${VERSION}.exe"
+Icon "..\BuildMonitor.ico"
+UninstallIcon "..\BuildMonitor.ico"
 
 Page license
 Page directory
@@ -16,6 +18,14 @@ Page components
 Page instfiles
 UninstPage uninstConfirm
 UninstPage instfiles
+
+VIAddVersionKey "ProductName" "Build Monitor"
+VIAddVersionKey "FileDescription" "This application helps you monitor the state of Jenkins builds."
+VIAddVersionKey "ProductVersion" ${Version}
+VIAddVersionKey "FileVersion" ${Version}
+
+VIProductVersion ${Version}.0
+VIFileVersion ${Version}.0
 
 Section "BuildMonitor"
 	${nsProcess::FindProcess} "BuildMonitor.exe" $R0
@@ -38,6 +48,9 @@ Section "BuildMonitor"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "UninstallString" '"$INSTDIR\uninstall.exe"'
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "NoRepair" 1
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "DisplayIcon" '"$INSTDIR\uninstall.exe"'
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "DisplayVersion" "${Version}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuildMonitor" "Publisher" "XsparkieX"
 	WriteUninstaller "uninstall.exe"
 SectionEnd
 
