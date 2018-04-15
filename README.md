@@ -15,10 +15,10 @@ Notifications are shown when the build becomes unstable and when it's back stabl
 
 ## Windows
 ### Prerequisites
-* 7zip
 * Qt5
-* Qt Installer Framework
 * Microsoft Visual Studio 2017
+* 7zip (if you want to create an installer)
+* NSIS Installer framework (if you want to create an installer)
 
 ### Steps
 1. Go to .\BuildMonitor\Installer
