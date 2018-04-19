@@ -331,7 +331,7 @@ void BuildMonitor::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
 	if (reason != QSystemTrayIcon::Context)
 	{
-		if (isHidden() | isMinimized())
+		if (isHidden() || isMinimized())
 		{
 			showWindow();
 		}
