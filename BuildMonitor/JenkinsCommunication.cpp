@@ -94,6 +94,20 @@ void JenkinsCommunication::startJenkinsServerInformationRetrieval()
 	}
 }
 
+void JenkinsCommunication::startJenkinsFolderInformationRetrieval(const std::vector<std::shared_ptr<ProjectInformationFolder> >& folders)
+{
+	for (const auto& folder : folders)
+	{
+		QUrl jenkinsRequest = folder->folderUrl;
+		jenkinsRequest.setPath(jenkinsRequest.path() + "api/json");
+		QNetworkRequest projectInformationRequest(jenkinsRequest);
+		projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
+
+		jenkinsFolderReplies.emplace_back(folder, networkAccessManager->get(projectInformationRequest));
+		connect(jenkinsFolderReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onJenkinsInformationReceived);
+	}
+}
+
 void JenkinsCommunication::startProjectInformationRetrieval()
 {
 	projectRetrievalRepliesCount = 0;
@@ -106,7 +120,7 @@ void JenkinsCommunication::startProjectInformationRetrieval()
 		ForEachProjectInformation(projectInformation, [this] (ProjectInformation& info)
 		{
 			QUrl projectRequest = info.projectUrl;
-			projectRequest.setPath("/job/" + info.projectName + "/lastBuild/api/json");
+			projectRequest.setPath(projectRequest.path() + "lastBuild/api/json");
 			QNetworkRequest projectInformationRequest(projectRequest);
 			projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
 			projectRetrievalReplies.emplace_back(&info, networkAccessManager->get(projectInformationRequest));
@@ -127,7 +141,7 @@ void JenkinsCommunication::startLastSuccesfulProjectInformationRetrieval()
 		ForEachProjectInformation(projectInformation, [this] (ProjectInformation& info)
 		{
 			QUrl projectRequest = info.projectUrl;
-			projectRequest.setPath("/job/" + info.projectName + "/lastSuccessfulBuild/api/json");
+			projectRequest.setPath(projectRequest.path() + "lastSuccessfulBuild/api/json");
 			QNetworkRequest projectInformationRequest(projectRequest);
 			projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
 			projectRetrievalReplies.emplace_back(&info, networkAccessManager->get(projectInformationRequest));
@@ -144,6 +158,7 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 		return; // We are still awaiting response from other jenkins servers.
 	}
 
+	std::vector<std::shared_ptr<ProjectInformationFolder> > additionalFoldersToRetrieve;
 	for (const auto& folderReply : jenkinsFolderReplies)
 	{
 		QNetworkReply* reply = folderReply.second;
@@ -162,6 +177,12 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					info->projectName = object["name"].toString();
 					if (object["_class"].toString() == "com.cloudbees.hudson.plugins.folder.Folder")
 					{
+						std::shared_ptr<ProjectInformationFolder> folder(new ProjectInformationFolder(object["name"].toString()));
+						folderReply.first->folders.emplace_back(folder);
+						folder->parent = folderReply.first;
+						folder->folderUrl = object["url"].toString();
+						additionalFoldersToRetrieve.emplace_back(folder);
+						
 						continue;
 					}
 
@@ -239,8 +260,16 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 		delete reply.second;
 	}
 	jenkinsFolderReplies.clear();
+	jenkinsFolderRepliesCount = 0;
 
-	startProjectInformationRetrieval();
+	if (additionalFoldersToRetrieve.empty())
+	{
+		startProjectInformationRetrieval();
+	}
+	else
+	{
+		startJenkinsFolderInformationRetrieval(additionalFoldersToRetrieve);
+	}
 }
 
 void JenkinsCommunication::onProjectInformationReceived()

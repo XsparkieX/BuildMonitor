@@ -42,6 +42,7 @@ Q_SIGNALS:
 
 private:
 	void startJenkinsServerInformationRetrieval();
+	void startJenkinsFolderInformationRetrieval(const std::vector<std::shared_ptr<ProjectInformationFolder> >& folders);
 	void startProjectInformationRetrieval();
 	void startLastSuccesfulProjectInformationRetrieval();
 
