@@ -195,7 +195,7 @@ void BuildMonitor::updateTaskbarProgress()
 #if _MSC_VER
 	if (!settings.showProgressForProject.isEmpty())
 	{
-		ForEachProjectInformationWithBreak(lastProjectInformation, [this] {const ProjectInformation& info}
+		ForEachProjectInformationWithBreak(lastProjectInformation, [this] (const ProjectInformation& info)
 		{
 			if (info.projectName == settings.showProgressForProject)
 			{
