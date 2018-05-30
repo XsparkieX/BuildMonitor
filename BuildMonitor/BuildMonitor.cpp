@@ -195,7 +195,7 @@ void BuildMonitor::updateTaskbarProgress()
 #if _MSC_VER
 	if (!settings.showProgressForProject.isEmpty())
 	{
-		for (const ProjectInformation& info : lastProjectInformation)
+		ForEachProjectInformationWithBreak(lastProjectInformation, [this] {const ProjectInformation& info}
 		{
 			if (info.projectName == settings.showProgressForProject)
 			{
@@ -214,14 +214,16 @@ void BuildMonitor::updateTaskbarProgress()
 					winTaskbarButton->progress()->setVisible(false);
 				}
 
-				break;
+				return true;
 			}
-		}
+			
+			return false;
+		});
 	}
 	else if (projectStatus_isFailure(projectBuildStatusGlobal) && projectBuildStatusGlobalIsBuilding)
 	{
 		float progressToDisplay = 0.0f;
-		for (const ProjectInformation& info : lastProjectInformation)
+		ForEachProjectInformation(lastProjectInformation, [&progressToDisplay] (const ProjectInformation& info)
 		{
 			if (projectStatus_isFailure(info.status) && info.isBuilding)
 			{
@@ -235,7 +237,8 @@ void BuildMonitor::updateTaskbarProgress()
 					}
 				}
 			}
-		}
+		});
+		
 		progressToDisplay = progressToDisplay > 1.0f ? 1.0f : progressToDisplay;
 		progressToDisplay = progressToDisplay < 0.0f ? 0.0f : progressToDisplay;
 
@@ -356,9 +359,9 @@ void BuildMonitor::onTrayContextActionExecuted(TrayContextAction action)
 	}
 }
 
-void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformation>& projectInformation)
+void BuildMonitor::onProjectInformationUpdated(const ProjectInformationFolder& projectInformation)
 {
-	for (size_t index = 0; index < lastProjectInformation.size(); ++index)
+	ForEachProjectInformation(lastProjectInformation, [&](const ProjectInformation& lastInfo)
 	{
 		auto switchedToFailed = [](const ProjectInformation& last, const ProjectInformation& now)
 		{
@@ -401,39 +404,26 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 				tray->showMessage(projectName, message, broken ? QSystemTrayIcon::Critical : QSystemTrayIcon::Information, 3000);
 			};
 
-			if (projectInformation.size() < index && lastProjectInformation.size() < index &&
-					projectInformation[index].projectName == lastProjectInformation[index].projectName)
+			ForEachProjectInformationWithBreak(projectInformation, [&lastInfo, &showMessage, &switchedToFailed, &switchedToSuccess] (const ProjectInformation& info)
 			{
-				if (switchedToFailed(lastProjectInformation[index], projectInformation[index]))
+				if (info.projectName == lastInfo.projectName)
 				{
-					showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, true);
-				}
-				else if (switchedToSuccess(lastProjectInformation[index], projectInformation[index]))
-				{
-					showMessage(projectInformation[index].projectName, projectInformation[index].initiatedBy, false);
-				}
-			}
-			else
-			{
-				for (const ProjectInformation& info : projectInformation)
-				{
-					if (info.projectName == lastProjectInformation[index].projectName)
+					if (switchedToFailed(lastInfo, info))
 					{
-						if (switchedToFailed(lastProjectInformation[index], info))
-						{
-							showMessage(info.projectName, info.initiatedBy, true);
-						}
-						else if (switchedToSuccess(lastProjectInformation[index], info))
-						{
-							showMessage(info.projectName, info.initiatedBy, false);
-						}
-						break;
+						showMessage(info.projectName, info.initiatedBy, true);
 					}
+					else if (switchedToSuccess(lastInfo, info))
+					{
+						showMessage(info.projectName, info.initiatedBy, false);
+					}
+					
+					return true;
 				}
-			}
+				
+				return false;
+			});
 		}
-	}
-
+	});
 
 	lastProjectInformation = projectInformation;
 
@@ -449,7 +439,7 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 	size_t newStatusIndex = priorityList.size() - 1;
 
 	bool isBuilding = false;
-	for (const ProjectInformation& info : projectInformation)
+	ForEachProjectInformation(projectInformation, [&isBuilding, &newStatusIndex](const ProjectInformation& info)
 	{
 		size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
 		if (statusIndex < newStatusIndex)
@@ -457,7 +447,7 @@ void BuildMonitor::onProjectInformationUpdated(const std::vector<ProjectInformat
 			newStatusIndex = statusIndex;
 		}
 		isBuilding |= info.isBuilding;
-	}
+	});
 
 	if (priorityList[newStatusIndex] != projectBuildStatusGlobal || isBuilding != projectBuildStatusGlobalIsBuilding)
 	{
@@ -474,23 +464,22 @@ void BuildMonitor::onFixInformationUpdated(const std::vector<FixInformation>& fi
 {
 	for (const FixInformation& info : fixInformation)
 	{
-		const std::vector<ProjectInformation>::iterator pos = std::find_if(lastProjectInformation.begin(), lastProjectInformation.end(),
-			[&info](const ProjectInformation& projectInfo)
+		const std::shared_ptr<ProjectInformation>& result = FindProjectInformation(lastProjectInformation, [&info](const ProjectInformation& projectInfo)
 		{
 			return projectInfo.projectName == info.projectName;
 		});
-
-		if (pos != lastProjectInformation.end())
+		
+		if (result)
 		{
-			if (pos->buildNumber >= info.buildNumber)
+			if (result->buildNumber >= info.buildNumber)
 			{
-				if (projectStatus_isFailure(pos->status))
+				if (projectStatus_isFailure(result->status))
 				{
-					pos->volunteer = info.userName;
+					result->volunteer = info.userName;
 				}
 				else
 				{
-					buildMonitorServerCommunication->requestReportFixed(pos->projectName, pos->buildNumber);
+					buildMonitorServerCommunication->requestReportFixed(result->projectName, result->buildNumber);
 				}
 			}
 		}
@@ -512,33 +501,31 @@ void BuildMonitor::onProjectInformationError(const QString& errorMessage)
 void BuildMonitor::onTableRowDoubleClicked(const QModelIndex& index)
 {
 	const QString projectName = ui.serverOverviewTable->getProjectName(index.row());
-	for (const ProjectInformation& info : lastProjectInformation)
+	ForEachProjectInformationWithBreak(lastProjectInformation, [&projectName] (const ProjectInformation& info)
 	{
 		if (info.projectName == projectName)
 		{
 			QDesktopServices::openUrl(info.projectUrl);
-			break;
+			return true;
 		}
-	}
+		
+		return false;
+	});
 }
 
 void BuildMonitor::onVolunteerToFix(const QString& projectName)
 {
-	const std::vector<ProjectInformation>::const_iterator pos = std::find_if(lastProjectInformation.begin(), lastProjectInformation.end(),
-		[&projectName](const ProjectInformation& element) { return element.projectName == projectName; });
-	if (pos != lastProjectInformation.end() && projectStatus_isFailure(pos->status))
+	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectName] (const ProjectInformation& projectInfo) { return projectName == projectInfo.projectName; }))
 	{
-		buildMonitorServerCommunication->requestReportFixing(projectName, pos->buildNumber);
+		buildMonitorServerCommunication->requestReportFixing(projectName, info->buildNumber);
 		jenkins->refresh();
 	}
 }
 
 void BuildMonitor::onViewBuildLog(const QString& projectName)
 {
-	const std::vector<ProjectInformation>::const_iterator pos = std::find_if(lastProjectInformation.begin(), lastProjectInformation.end(),
-		[&projectName](const ProjectInformation& element) { return element.projectName == projectName; });
-	if (pos != lastProjectInformation.end() && pos->buildNumber != 0)
+	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectName] (const ProjectInformation& projectInfo) { return projectName == projectInfo.projectName; }))
 	{
-		QDesktopServices::openUrl(pos->projectUrl.toString() + QString::number(pos->buildNumber) + "/consoleText");
+		QDesktopServices::openUrl(info->projectUrl.toString() + QString::number(info->buildNumber) + "/consoleText");
 	}
 }

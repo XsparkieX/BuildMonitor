@@ -32,13 +32,12 @@ public:
 	void setSettings(const class Settings* settings);
 	void refreshSettings();
 	
-	const std::vector<ProjectInformation>& getProjectInformation() const;
-	const std::vector<QString>& getAllAvailableProjects() const;
+	const std::vector<QString> getAllAvailableProjects() const;
 
 	void refresh();
 
 Q_SIGNALS:
-	void projectInformationUpdated(const std::vector<ProjectInformation>& projectInformation);
+	void projectInformationUpdated(const ProjectInformationFolder& projectInformation);
 	void projectInformationError(const QString& errorMessage);
 
 private:
@@ -50,15 +49,14 @@ private:
 	void onProjectInformationReceived();
 	void onLastSuccesfulProjectInformationReceived();
 
-	std::vector<ProjectInformation> projectInformation;
-	std::vector<QString> allAvailableProjects;
+	ProjectInformationFolder projectInformation;
 
 	const class Settings* settings;
 
 	class QNetworkAccessManager* networkAccessManager;
 	class QTimer* refreshTimer;
-	std::vector<class QNetworkReply*> jenkinsServerReplies;
+	std::vector<std::pair<std::shared_ptr<ProjectInformationFolder>, class QNetworkReply*> > jenkinsFolderReplies;
 	std::vector<std::pair<ProjectInformation*, class QNetworkReply*> > projectRetrievalReplies;
-	size_t jenkinsServerRepliesCount;
+	size_t jenkinsFolderRepliesCount;
 	size_t projectRetrievalRepliesCount;
 };

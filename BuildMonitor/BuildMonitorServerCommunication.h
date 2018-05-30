@@ -33,7 +33,7 @@ public:
 	virtual ~BuildMonitorServerCommunication();
 	
 	void setServerAddress(const QString& serverAddress);
-	void requestFixInformation(const std::vector<class ProjectInformation>& projects);
+	void requestFixInformation(const class ProjectInformationFolder& projects);
 	void requestReportFixing(const QString& projectName, const qint32 buildNumber);
 	void requestReportFixed(const QString& projectName, const qint32 buildNumber);
 

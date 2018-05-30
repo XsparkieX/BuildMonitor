@@ -30,7 +30,7 @@ JenkinsCommunication::JenkinsCommunication(QObject* parent) :
 	QObject(parent),
 	networkAccessManager(new QNetworkAccessManager(this)),
 	refreshTimer(new QTimer(this)),
-	jenkinsServerRepliesCount(0),
+	jenkinsFolderRepliesCount(0),
 	projectRetrievalRepliesCount(0)
 {
 	connect(refreshTimer, &QTimer::timeout, this, &JenkinsCommunication::refresh);
@@ -54,19 +54,21 @@ void JenkinsCommunication::refreshSettings()
 	}
 }
 
-const std::vector<ProjectInformation>& JenkinsCommunication::getProjectInformation() const
+const std::vector<QString> JenkinsCommunication::getAllAvailableProjects() const
 {
-	return projectInformation;
-}
-
-const std::vector<QString>& JenkinsCommunication::getAllAvailableProjects() const
-{
-	return allAvailableProjects;
+	std::vector<QString> projects;
+	ForEachProjectInformation(projectInformation, [&projects] (const ProjectInformation& info)
+	{
+		projects.push_back(info.projectName);
+	});
+	
+	return projects;
 }
 
 void JenkinsCommunication::refresh()
 {
-	if (!jenkinsServerReplies.empty() && !projectRetrievalReplies.empty())
+	// We are already in the process of receiving information.
+	if (!jenkinsFolderReplies.empty() && !projectRetrievalReplies.empty())
 	{
 		return;
 	}
@@ -76,31 +78,32 @@ void JenkinsCommunication::refresh()
 
 void JenkinsCommunication::startJenkinsServerInformationRetrieval()
 {
-	jenkinsServerRepliesCount = 0;
-	jenkinsServerReplies.clear();
-	allAvailableProjects.clear();
-	projectInformation.clear();
+	jenkinsFolderRepliesCount = 0;
+	jenkinsFolderReplies.clear();
+	projectInformation = ProjectInformationFolder("Root");
 	for (QUrl jenkinsRequest : settings->serverURLs)
 	{
+		projectInformation.folders.push_back(std::shared_ptr<ProjectInformationFolder>(new ProjectInformationFolder(jenkinsRequest.host())));
+		
 		jenkinsRequest.setPath("/api/json");
 		QNetworkRequest projectInformationRequest(jenkinsRequest);
 		projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
 
-		jenkinsServerReplies.emplace_back(networkAccessManager->get(projectInformationRequest));
-		connect(jenkinsServerReplies.back(), &QNetworkReply::finished, this, &JenkinsCommunication::onJenkinsInformationReceived);
+		jenkinsFolderReplies.emplace_back(projectInformation.folders.back(), networkAccessManager->get(projectInformationRequest));
+		connect(jenkinsFolderReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onJenkinsInformationReceived);
 	}
 }
 
 void JenkinsCommunication::startProjectInformationRetrieval()
 {
 	projectRetrievalRepliesCount = 0;
-	if (projectInformation.empty())
+	if (projectInformation.folders.empty() && projectInformation.projects.empty())
 	{
 		projectInformationUpdated(projectInformation);
 	}
 	else
 	{
-		for (ProjectInformation& info : projectInformation)
+		ForEachProjectInformation(projectInformation, [this] (ProjectInformation& info)
 		{
 			QUrl projectRequest = info.projectUrl;
 			projectRequest.setPath("/job/" + info.projectName + "/lastBuild/api/json");
@@ -108,20 +111,20 @@ void JenkinsCommunication::startProjectInformationRetrieval()
 			projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
 			projectRetrievalReplies.emplace_back(&info, networkAccessManager->get(projectInformationRequest));
 			connect(projectRetrievalReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onProjectInformationReceived);
-		}
+		});
 	}
 }
 
 void JenkinsCommunication::startLastSuccesfulProjectInformationRetrieval()
 {
 	projectRetrievalRepliesCount = 0;
-	if (projectInformation.empty())
+	if (projectInformation.folders.empty() && projectInformation.projects.empty())
 	{
 		projectInformationUpdated(projectInformation);
 	}
 	else
 	{
-		for (ProjectInformation& info : projectInformation)
+		ForEachProjectInformation(projectInformation, [this] (ProjectInformation& info)
 		{
 			QUrl projectRequest = info.projectUrl;
 			projectRequest.setPath("/job/" + info.projectName + "/lastSuccessfulBuild/api/json");
@@ -129,20 +132,21 @@ void JenkinsCommunication::startLastSuccesfulProjectInformationRetrieval()
 			projectInformationRequest.setHeader(QNetworkRequest::ServerHeader, "application/json");
 			projectRetrievalReplies.emplace_back(&info, networkAccessManager->get(projectInformationRequest));
 			connect(projectRetrievalReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onLastSuccesfulProjectInformationReceived);
-		}
+		});
 	}
 }
 
 void JenkinsCommunication::onJenkinsInformationReceived()
 {
-	++jenkinsServerRepliesCount;
-	if (jenkinsServerRepliesCount != jenkinsServerReplies.size())
+	++jenkinsFolderRepliesCount;
+	if (jenkinsFolderRepliesCount != jenkinsFolderReplies.size())
 	{
 		return; // We are still awaiting response from other jenkins servers.
 	}
 
-	for (QNetworkReply* reply : jenkinsServerReplies)
+	for (const auto& folderReply : jenkinsFolderReplies)
 	{
+		QNetworkReply* reply = folderReply.second;
 		if (reply->error() == QNetworkReply::NoError)
 		{
 			QJsonDocument document(QJsonDocument::fromJson(reply->readAll()));
@@ -154,15 +158,17 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 				if (project.isObject())
 				{
 					const QJsonObject object = project.toObject();
-					ProjectInformation info;
-					info.projectName = object["name"].toString();
-
-					allAvailableProjects.emplace_back(info.projectName);
+					std::shared_ptr<ProjectInformation> info(new ProjectInformation);
+					info->projectName = object["name"].toString();
+					if (object["_class"].toString() == "com.cloudbees.hudson.plugins.folder.Folder")
+					{
+						continue;
+					}
 
 					if (settings->useRegExProjectFilter)
 					{
-						if (!settings->projectIncludeRegEx.exactMatch(info.projectName) ||
-							settings->projectExcludeRegEx.exactMatch(info.projectName))
+						if (!settings->projectIncludeRegEx.exactMatch(info->projectName) ||
+							settings->projectExcludeRegEx.exactMatch(info->projectName))
 						{
 							continue;
 						}
@@ -170,54 +176,54 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					else
 					{
 						if (std::find(settings->enabledProjectList.begin(),
-								settings->enabledProjectList.end(), info.projectName) ==
+								settings->enabledProjectList.end(), info->projectName) ==
 									settings->enabledProjectList.end())
 						{
 							continue;
 						}
 					}
 
-					info.projectUrl = object["url"].toString();
-					if (info.projectUrl.host() != reply->url().host())
+					info->projectUrl = object["url"].toString();
+					if (info->projectUrl.host() != reply->url().host())
 					{
-						info.projectUrl.setHost(reply->url().host());
+						info->projectUrl.setHost(reply->url().host());
 					}
 					bool addToList = true;
 					const QString buildStatus = object["color"].toString();
 					if (buildStatus.startsWith("blue"))
 					{
-						info.status = EProjectStatus::Succeeded;
+						info->status = EProjectStatus::Succeeded;
 					}
 					else if (buildStatus.startsWith("red"))
 					{
-						info.status = EProjectStatus::Failed;
+						info->status = EProjectStatus::Failed;
 					}
 					else if (buildStatus.startsWith("yellow"))
 					{
-						info.status = EProjectStatus::Unstable;
+						info->status = EProjectStatus::Unstable;
 					}
 					else if (buildStatus.startsWith("disabled"))
 					{
 						addToList = settings->showDisabledProjects;
-						info.status = EProjectStatus::Disabled;
+						info->status = EProjectStatus::Disabled;
 					}
 					else if (buildStatus.startsWith("aborted"))
 					{
-						info.status = EProjectStatus::Aborted;
+						info->status = EProjectStatus::Aborted;
 					}
 					else if (buildStatus.startsWith("notbuilt"))
 					{
-						info.status = EProjectStatus::NotBuilt;
+						info->status = EProjectStatus::NotBuilt;
 					}
 					else
 					{
-						info.status = EProjectStatus::Unknown;
+						info->status = EProjectStatus::Unknown;
 					}
-					info.isBuilding = buildStatus.endsWith("_anime");
+					info->isBuilding = buildStatus.endsWith("_anime");
 
 					if (addToList)
 					{
-						projectInformation.emplace_back(info);
+						folderReply.first->projects.push_back(info);
 					}
 				}
 			}
@@ -228,11 +234,11 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 		}
 	}
 
-	for (QNetworkReply* reply : jenkinsServerReplies)
+	for (auto& reply : jenkinsFolderReplies)
 	{
-		delete reply;
+		delete reply.second;
 	}
-	jenkinsServerReplies.clear();
+	jenkinsFolderReplies.clear();
 
 	startProjectInformationRetrieval();
 }
@@ -295,13 +301,6 @@ void JenkinsCommunication::onProjectInformationReceived()
 		delete pair.second;
 	}
 	projectRetrievalReplies.clear();
-
-	std::sort(projectInformation.begin(), projectInformation.end(), [](const ProjectInformation& lhs, const ProjectInformation& rhs)
-	{
-		return lhs.projectName < rhs.projectName;
-	});
-
-	std::sort(allAvailableProjects.begin(), allAvailableProjects.end());
 
 	startLastSuccesfulProjectInformationRetrieval();
 }

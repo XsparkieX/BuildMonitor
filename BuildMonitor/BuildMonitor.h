@@ -57,7 +57,7 @@ private:
 	void onSettingsChanged();
 	void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
 	void onTrayContextActionExecuted(TrayContextAction action);
-	void onProjectInformationUpdated(const std::vector<ProjectInformation>& projectInformation);
+	void onProjectInformationUpdated(const ProjectInformationFolder& projectInformation);
 	void onFixInformationUpdated(const std::vector<FixInformation>& fixInformation);
 	void onProjectInformationError(const QString& errorMessage);
 	void onTableRowDoubleClicked(const class QModelIndex& index);
@@ -80,6 +80,6 @@ private:
 	class JenkinsCommunication* jenkins;
 	EProjectStatus projectBuildStatusGlobal;
 	bool projectBuildStatusGlobalIsBuilding;
-	std::vector<ProjectInformation> lastProjectInformation;
+	ProjectInformationFolder lastProjectInformation;
 	bool exitApplication;
 };

@@ -59,7 +59,7 @@ void ServerOverviewTable::setIcons(const QIcon* inSucceeded, const QIcon* inSucc
 	failedBuilding = inFailedBuilding;
 }
 
-void ServerOverviewTable::setProjectInformation(const class std::vector<class ProjectInformation>& inProjectInformation)
+void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& inProjectInformation)
 {
 	projectInformation = &inProjectInformation;
 
@@ -70,7 +70,8 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 	itemPool.clear();
 	clearContents();
 
-	for (const ProjectInformation& info : inProjectInformation)
+	qint32 numProjects = 0;
+	ForEachProjectInformation(inProjectInformation, [&](const ProjectInformation& info)
 	{
 		QTableWidgetItem* statusItem = new QTableWidgetItem();
 		statusItem->setText(projectStatus_toString(info.status));
@@ -165,9 +166,10 @@ void ServerOverviewTable::setProjectInformation(const class std::vector<class Pr
 		}
 
 		itemPool.push_back(new QTableWidgetItem(initiators));
-	}
+		
+		++numProjects;
+	});
 
-	const qint32 numProjects = static_cast<qint32>(inProjectInformation.size());
 	setRowCount(numProjects);
 	const qint32 numHeaders = headerLabels.size();
 	for (qint32 row = 0; row < numProjects; ++row)
@@ -205,9 +207,8 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	bool volunteerOptionEnabled = false;
 	if (projectInformation)
 	{
-		const std::vector<ProjectInformation>::const_iterator pos = std::find_if(projectInformation->begin(), projectInformation->end(),
-			[&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
-		volunteerOptionEnabled = pos != projectInformation->end() && projectStatus_isFailure(pos->status);
+		const auto& pos = FindProjectInformation(*projectInformation, [&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
+		volunteerOptionEnabled = pos && projectStatus_isFailure(pos->status);
 	}
 	volunteerToFixAction->setEnabled(volunteerOptionEnabled);
 
@@ -215,9 +216,8 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	bool viewBuildLogActionEnabled = false;
 	if (projectInformation)
 	{
-		const std::vector<ProjectInformation>::const_iterator pos = std::find_if(projectInformation->begin(), projectInformation->end(),
-			[&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
-		viewBuildLogActionEnabled = pos != projectInformation->end() && pos->buildNumber != 0;
+		const auto& pos = FindProjectInformation(*projectInformation, [&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
+		viewBuildLogActionEnabled = pos && pos->buildNumber != 0;
 	}
 	viewBuildLogAction->setEnabled(viewBuildLogActionEnabled);
 

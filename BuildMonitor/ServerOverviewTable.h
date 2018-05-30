@@ -29,7 +29,7 @@ public:
 
 	void setIcons(const QIcon* inSucceeded, const QIcon* inSucceededBuilding,
 		const QIcon* inFailed, const QIcon* inFailedBuilding);
-	void setProjectInformation(const class std::vector<class ProjectInformation>& inProjectInformation);
+	void setProjectInformation(const class ProjectInformationFolder& inProjectInformation);
 
 	QString getProjectName(qint32 row);
 
@@ -45,7 +45,7 @@ private:
 	const QIcon* failed;
 	const QIcon* failedBuilding;
 
-	const class std::vector<class ProjectInformation>* projectInformation;
+	const class ProjectInformationFolder* projectInformation;
 	std::vector<class QTableWidgetItem*> itemPool;
 	QStringList headerLabels;
 };

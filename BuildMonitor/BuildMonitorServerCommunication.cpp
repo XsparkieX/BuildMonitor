@@ -72,7 +72,7 @@ void BuildMonitorServerCommunication::setServerAddress(const QString& inServerAd
 	worker->setServerAddress(serverAddress, serverPort);
 }
 
-void BuildMonitorServerCommunication::requestFixInformation(const std::vector<class ProjectInformation>& projects)
+void BuildMonitorServerCommunication::requestFixInformation(const ProjectInformationFolder& projects)
 {
 	if (!worker->containsRequestType(BuildMonitorRequestType::FixInformation))
 	{
@@ -81,10 +81,10 @@ void BuildMonitorServerCommunication::requestFixInformation(const std::vector<cl
 		root["request_type"] = "fix_state";
 		QJsonObject requestInfo;
 		QJsonArray projectsArray;
-		for (const ProjectInformation& info : projects)
+		ForEachProjectInformation(projects, [&projectsArray] (const ProjectInformation& info)
 		{
 			projectsArray.push_back(info.projectName);
-		}
+		});
 		requestInfo["projects"] = projectsArray;
 		root["request_info"] = requestInfo;
 		QJsonDocument doc;

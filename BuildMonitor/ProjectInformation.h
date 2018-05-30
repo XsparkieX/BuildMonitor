@@ -22,6 +22,7 @@
 #include <qstring.h>
 #include <qurl.h>
 
+#include <memory>
 #include <vector>
 
 class ProjectInformation
@@ -50,3 +51,84 @@ public:
 	QString volunteer;
 	std::vector<QString> initiatedBy;
 };
+
+class ProjectInformationFolder
+{
+public:
+	ProjectInformationFolder()
+	{
+	}
+	
+	ProjectInformationFolder(const QString& inFolderName) :
+		folderName(inFolderName)
+	{
+	}
+	
+	QString folderName;
+	std::vector<std::shared_ptr<ProjectInformationFolder> > folders;
+	std::vector<std::shared_ptr<ProjectInformation> > projects;
+};
+
+template<typename Fn>
+void ForEachProjectInformation(const ProjectInformationFolder& folder, const Fn& function)
+{
+	for (const auto& element : folder.folders)
+	{
+		ForEachProjectInformation(*element, function);
+	}
+	
+	for (const auto& element : folder.projects)
+	{
+		function(*element);
+	}
+}
+
+template<typename Fn>
+std::shared_ptr<ProjectInformation> FindProjectInformation(const ProjectInformationFolder& folder, const Fn& function)
+{
+	for (const auto& element : folder.folders)
+	{
+		const auto& result = FindProjectInformation(*element, function);
+		if (result)
+		{
+			return result;
+		}
+	}
+	
+	for (const auto& element : folder.projects)
+	{
+		if (function(*element))
+		{
+			return element;
+		}
+	}
+	
+	return nullptr;	
+}
+
+template<typename Fn>
+bool ForEachProjectInformationWithBreak(const ProjectInformationFolder& folder, const Fn& function)
+{
+	bool shouldBreak = false;
+	for (const auto& element : folder.folders)
+	{
+		shouldBreak = ForEachProjectInformationWithBreak(*element, function);
+		if (shouldBreak)
+		{
+			break;
+		}
+	}
+	
+	if (!shouldBreak)
+	{
+		for (const auto& element : folder.projects)
+		{
+			if (function(*element))
+			{
+				return true;
+			}
+		}
+	}
+	
+	return false;
+}
