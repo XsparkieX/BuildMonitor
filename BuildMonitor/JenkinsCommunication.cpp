@@ -56,13 +56,7 @@ void JenkinsCommunication::refreshSettings()
 
 const std::vector<QString> JenkinsCommunication::getAllAvailableProjects() const
 {
-	std::vector<QString> projects;
-	ForEachProjectInformation(projectInformation, [&projects] (const ProjectInformation& info)
-	{
-		projects.push_back(info.projectName);
-	});
-	
-	return projects;
+	return allProjectNames;
 }
 
 void JenkinsCommunication::refresh()
@@ -80,6 +74,7 @@ void JenkinsCommunication::startJenkinsServerInformationRetrieval()
 {
 	jenkinsFolderRepliesCount = 0;
 	jenkinsFolderReplies.clear();
+	inProgressProjectNames.clear();
 	projectInformation = ProjectInformationFolder("Root");
 	for (QUrl jenkinsRequest : settings->serverURLs)
 	{
@@ -185,6 +180,8 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 						
 						continue;
 					}
+
+					inProgressProjectNames.emplace_back(info->projectName);
 
 					if (settings->useRegExProjectFilter)
 					{
@@ -361,5 +358,7 @@ void JenkinsCommunication::onLastSuccesfulProjectInformationReceived()
 	}
 	projectRetrievalReplies.clear();
 
+	allProjectNames = inProgressProjectNames;
+	inProgressProjectNames.clear();
 	projectInformationUpdated(projectInformation);
 }

@@ -50,6 +50,8 @@ private:
 	void onProjectInformationReceived();
 	void onLastSuccesfulProjectInformationReceived();
 
+	std::vector<QString> allProjectNames;
+	std::vector<QString> inProgressProjectNames;
 	ProjectInformationFolder projectInformation;
 
 	const class Settings* settings;
