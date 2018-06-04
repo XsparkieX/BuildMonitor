@@ -77,7 +77,7 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 	while (!foldersToParse.empty())
 	{
 		bool isEmptyTree = true;
-		ForEachProjectInformationWithBreak(*foldersToParse[0].second, [&isEmptyTree] (const ProjectInformation& info)
+		ForEachProjectInformationWithBreak(*foldersToParse[0].second, [&isEmptyTree] (const ProjectInformation&)
 		{
 			isEmptyTree = false;
 			return true;
