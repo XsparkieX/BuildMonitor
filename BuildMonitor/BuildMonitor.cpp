@@ -498,9 +498,9 @@ void BuildMonitor::onProjectInformationError(const QString& errorMessage)
 	ui.statusBar->showMessage(errorMessage);
 }
 
-void BuildMonitor::onTableRowDoubleClicked(const QModelIndex& index)
+void BuildMonitor::onTableRowDoubleClicked(const QModelIndex& /* index */)
 {
-	const QString projectName = ui.serverOverviewTable->getProjectName(index.row());
+	const QString projectName = "";//ui.serverOverviewTable->getProjectName(index.row());
 	ForEachProjectInformationWithBreak(lastProjectInformation, [&projectName] (const ProjectInformation& info)
 	{
 		if (info.projectName == projectName)

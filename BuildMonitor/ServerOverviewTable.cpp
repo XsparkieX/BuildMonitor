@@ -28,15 +28,15 @@
 #include <qtooltip.h>
 
 ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
-	QTableWidget(parent),
+	QTreeWidget(parent),
 	succeeded(nullptr),
 	succeededBuilding(nullptr),
 	failed(nullptr),
 	failedBuilding(nullptr),
 	projectInformation(nullptr)
 {
-	headerLabels.push_back("Status");
 	headerLabels.push_back("Project");
+	headerLabels.push_back("Status");
 	headerLabels.push_back("Remaining Time");
 	headerLabels.push_back("Duration");
 	headerLabels.push_back("Last Successful Build");
@@ -44,7 +44,7 @@ ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
 	headerLabels.push_back("Initiated By");
 
 	setColumnCount(headerLabels.size());
-	setHorizontalHeaderLabels(headerLabels);
+	setHeaderLabels(headerLabels);
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, &ServerOverviewTable::customContextMenuRequested, this, &ServerOverviewTable::openContextMenu);
@@ -63,47 +63,80 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 {
 	projectInformation = &inProjectInformation;
 
-	for (auto& item : itemPool)
-	{
-		delete item;
-	}
-	itemPool.clear();
-	clearContents();
+	clear();
 
 	qint32 numProjects = 0;
-	ForEachProjectInformation(inProjectInformation, [&](const ProjectInformation& info)
+	
+	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformationFolder*> > foldersToParse;
+	for (const std::shared_ptr<ProjectInformationFolder>& folder : inProjectInformation.folders)
 	{
-		QTableWidgetItem* statusItem = new QTableWidgetItem();
-		statusItem->setText(projectStatus_toString(info.status));
-		if (projectStatus_isFailure(info.status))
+		foldersToParse.emplace_back(nullptr, folder.get());
+	}
+	
+	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformation*> > projectsToParse;
+	while (!foldersToParse.empty())
+	{
+		// TODO (SB): Expand condition to also look deeper in folders to ensure those aren't empty.
+		if (foldersToParse[0].second->projects.empty() && foldersToParse[0].second->folders.empty())
 		{
-			if (info.isBuilding && failedBuilding != nullptr)
+			foldersToParse.erase(foldersToParse.begin());
+			continue;
+		}
+		
+		QTreeWidgetItem* parent = new QTreeWidgetItem(foldersToParse[0].first);
+		if (foldersToParse[0].first == nullptr)
+		{
+			addTopLevelItem(parent);
+		}
+		
+		parent->setText(0, foldersToParse[0].second->folderName);		
+		for (const std::shared_ptr<ProjectInformationFolder>& folder : foldersToParse[0].second->folders)
+		{
+			foldersToParse.emplace_back(parent, folder.get());
+		}
+		
+		for (const std::shared_ptr<ProjectInformation>& info : foldersToParse[0].second->projects)
+		{
+			projectsToParse.emplace_back(parent, info.get());
+		}
+		
+		foldersToParse.erase(foldersToParse.begin());
+	}
+		
+	for (const std::pair<QTreeWidgetItem*, const ProjectInformation*>& pair : projectsToParse)
+	{
+		const ProjectInformation* info = pair.second;
+		QTreeWidgetItem* item = new QTreeWidgetItem(pair.first);
+		item->setText(0, info->projectName);
+		item->setToolTip(0, info->projectUrl.toString());
+		if (projectStatus_isFailure(info->status))
+		{
+			if (info->isBuilding && failedBuilding != nullptr)
 			{
-				statusItem->setIcon(*failedBuilding);
+				item->setIcon(0, *failedBuilding);
 			}
-			else if (!info.isBuilding && failed != nullptr)
+			else if (!info->isBuilding && failed != nullptr)
 			{
-				statusItem->setIcon(*failed);
+				item->setIcon(0, *failed);
 			}
 		}
 		else
 		{
-			if (info.isBuilding && succeededBuilding != nullptr)
+			if (info->isBuilding && succeededBuilding != nullptr)
 			{
-				statusItem->setIcon(*succeededBuilding);
+				item->setIcon(0, *succeededBuilding);
 			}
-			else if (!info.isBuilding && succeeded != nullptr)
+			else if (!info->isBuilding && succeeded != nullptr)
 			{
-				statusItem->setIcon(*succeeded);
+				item->setIcon(0, *succeeded);
 			}
 		}
-		itemPool.push_back(statusItem);
 
-		itemPool.push_back(new QTableWidgetItem(info.projectName));
+		item->setText(1, projectStatus_toString(info->status));
 
-		if (info.isBuilding)
+		if (info->isBuilding)
 		{
-			qint32 estimatedRemainingTime = info.estimatedRemainingTime / 1000;
+			qint32 estimatedRemainingTime = info->estimatedRemainingTime / 1000;
 			const char* timeUnit = "minute(s)";
 			if (estimatedRemainingTime < 60 && estimatedRemainingTime > -60)
 			{
@@ -127,33 +160,33 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 			}
 			estimatedRemainingTimeStream.flush();
 
-			itemPool.push_back(new QTableWidgetItem(estimatedRemainingTimeFull));
+			item->setText(2, estimatedRemainingTimeFull);
 		}
 		else
 		{
-			itemPool.push_back(new QTableWidgetItem("-"));
+			item->setText(2, "-");
 		}
-		itemPool.push_back(new QTableWidgetItem(QString::number(info.inProgressFor / 60 / 1000) + " minutes"));
+		item->setText(3, QString::number(info->inProgressFor / 60 / 1000) + " minutes");
 
-		if (info.lastSuccessfulBuildTime != -1)
+		if (info->lastSuccessfulBuildTime != -1)
 		{
 			QDateTime lastSuccessfulBuild;
-			lastSuccessfulBuild.setMSecsSinceEpoch(info.lastSuccessfulBuildTime);
-			itemPool.push_back(new QTableWidgetItem(lastSuccessfulBuild.toLocalTime().toString("hh:mm dd-MM-yyyy")));
+			lastSuccessfulBuild.setMSecsSinceEpoch(info->lastSuccessfulBuildTime);
+			item->setText(4, lastSuccessfulBuild.toLocalTime().toString("hh:mm dd-MM-yyyy"));
 		}
 		else
 		{
-			itemPool.push_back(new QTableWidgetItem("Unavailable"));
+			item->setText(4, "Unavailable");
 		}
 
-		itemPool.push_back(new QTableWidgetItem(info.volunteer));
+		item->setText(5, info->volunteer);
 
 		QString initiators;
-		for (size_t i = 0; i < info.initiatedBy.size(); ++i)
+		for (size_t i = 0; i < info->initiatedBy.size(); ++i)
 		{
 			if (i != 0)
 			{
-				if (i == info.initiatedBy.size() - 1)
+				if (i == info->initiatedBy.size() - 1)
 				{
 					initiators += " and ";
 				}
@@ -162,38 +195,20 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 					initiators += ", ";
 				}
 			}
-			initiators += info.initiatedBy[i];
+			initiators += info->initiatedBy[i];
 		}
+		item->setText(6, initiators);
+		item->setToolTip(6, initiators);
 
-		itemPool.push_back(new QTableWidgetItem(initiators));
-		
 		++numProjects;
-	});
-
-	setRowCount(numProjects);
-	const qint32 numHeaders = headerLabels.size();
-	for (qint32 row = 0; row < numProjects; ++row)
-	{
-		for (qint32 column = 0; column < numHeaders; ++column)
-		{
-			const qint32 itemLocationInArray = row * numHeaders + column;
-			QTableWidgetItem* item = itemPool[itemLocationInArray];
-			item->setToolTip(item->text());
-			setItem(row, column, item);
-		}
 	}
-
-	resizeColumnsToContents();
-	horizontalHeader()->setSectionResizeMode(headerLabels.size() - 1, QHeaderView::Stretch);
-}
-
-QString ServerOverviewTable::getProjectName(qint32 row)
-{
-	if (row == -1)
+	
+	expandAll();
+	for (qint32 i = 0; i < headerLabels.size(); ++i)
 	{
-		return "";
+		resizeColumnToContents(i);
 	}
-	return item(row, 1)->text();
+	header()->setSectionResizeMode(headerLabels.size() - 1, QHeaderView::Stretch);
 }
 
 void ServerOverviewTable::openContextMenu(const QPoint& location)
@@ -203,7 +218,7 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	QMenu contextMenu;
 
 	QAction* volunteerToFixAction = contextMenu.addAction("Volunteer to Fix");
-	QString projectName = getProjectName(currentIndex().row());
+	QString projectName = itemAt(location)->text(0);
 	bool volunteerOptionEnabled = false;
 	if (projectInformation)
 	{
@@ -226,11 +241,11 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	{
 		if (selectedContextMenuItem == volunteerToFixAction)
 		{
-			volunteerToFix(getProjectName(currentIndex().row()));
+			volunteerToFix(projectName);
 		}
 		else if (selectedContextMenuItem == viewBuildLogAction)
 		{
-			viewBuildLog(getProjectName(currentIndex().row()));
+			viewBuildLog(projectName);
 		}
 	}
 }

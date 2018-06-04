@@ -18,9 +18,9 @@
 #pragma once
 
 #include <qstandarditemmodel.h>
-#include <qtablewidget.h>
+#include <qtreewidget.h>
 
-class ServerOverviewTable : public QTableWidget
+class ServerOverviewTable : public QTreeWidget
 {
 	Q_OBJECT
 
@@ -30,8 +30,6 @@ public:
 	void setIcons(const QIcon* inSucceeded, const QIcon* inSucceededBuilding,
 		const QIcon* inFailed, const QIcon* inFailedBuilding);
 	void setProjectInformation(const class ProjectInformationFolder& inProjectInformation);
-
-	QString getProjectName(qint32 row);
 
 Q_SIGNALS:
 	void volunteerToFix(const QString& projectName);
@@ -46,6 +44,5 @@ private:
 	const QIcon* failedBuilding;
 
 	const class ProjectInformationFolder* projectInformation;
-	std::vector<class QTableWidgetItem*> itemPool;
 	QStringList headerLabels;
 };

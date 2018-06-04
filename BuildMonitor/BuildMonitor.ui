@@ -45,7 +45,7 @@
        </sizepolicy>
       </property>
       <property name="styleSheet">
-       <string notr="true">QTableView{
+       <string notr="true">QTreeView{
 id: serverOverviewTable
 width: 100%
 height: 100%
@@ -65,9 +65,6 @@ height: 100%
       </property>
       <property name="horizontalScrollMode">
        <enum>QAbstractItemView::ScrollPerPixel</enum>
-      </property>
-      <property name="cornerButtonEnabled">
-       <bool>false</bool>
       </property>
       <attribute name="horizontalHeaderHighlightSections">
        <bool>false</bool>
@@ -151,7 +148,7 @@ height: 100%
  <customwidgets>
   <customwidget>
    <class>ServerOverviewTable</class>
-   <extends>QTableView</extends>
+   <extends>QTreeView</extends>
    <header>ServerOverviewTable.h</header>
   </customwidget>
  </customwidgets>

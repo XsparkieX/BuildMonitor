@@ -62,7 +62,7 @@ const std::vector<QString> JenkinsCommunication::getAllAvailableProjects() const
 void JenkinsCommunication::refresh()
 {
 	// We are already in the process of receiving information.
-	if (!jenkinsFolderReplies.empty() && !projectRetrievalReplies.empty())
+	if (!jenkinsFolderReplies.empty() || !projectRetrievalReplies.empty())
 	{
 		return;
 	}
