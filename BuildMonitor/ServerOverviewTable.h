@@ -37,6 +37,7 @@ Q_SIGNALS:
 
 private:
 	void openContextMenu(const QPoint& location);
+	void onTreeRowDoubleClicked(const class QModelIndex& index);
 
 	const QIcon* succeeded;
 	const QIcon* succeededBuilding;

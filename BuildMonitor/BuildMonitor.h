@@ -60,7 +60,6 @@ private:
 	void onProjectInformationUpdated(const ProjectInformationFolder& projectInformation);
 	void onFixInformationUpdated(const std::vector<FixInformation>& fixInformation);
 	void onProjectInformationError(const QString& errorMessage);
-	void onTableRowDoubleClicked(const class QModelIndex& index);
 	void onVolunteerToFix(const QString& projectName);
 	void onViewBuildLog(const QString& projectName);
 

@@ -20,6 +20,7 @@
 #include "ProjectInformation.h"
 
 #include <qdatetime.h>
+#include <qdesktopservices.h>
 #include <qheaderview.h>
 #include <qmenu.h>
 #include <QMouseEvent>
@@ -48,6 +49,7 @@ ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, &ServerOverviewTable::customContextMenuRequested, this, &ServerOverviewTable::openContextMenu);
+	connect(this, &ServerOverviewTable::doubleClicked, this, &ServerOverviewTable::onTreeRowDoubleClicked);
 }
 
 void ServerOverviewTable::setIcons(const QIcon* inSucceeded, const QIcon* inSucceededBuilding,
@@ -66,7 +68,7 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 	clear();
 
 	qint32 numProjects = 0;
-	
+		
 	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformationFolder*> > foldersToParse;
 	for (const std::shared_ptr<ProjectInformationFolder>& folder : inProjectInformation.folders)
 	{
@@ -225,12 +227,13 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 
 	QAction* volunteerToFixAction = contextMenu.addAction("Volunteer to Fix");
 	QAction* viewBuildLogAction = contextMenu.addAction("View Build Log");
-	const QString projectName = itemAt(location)->text(0);
+	const QString projectUrl = itemAt(location)->toolTip(0);
 	bool volunteerOptionEnabled = false;
 	bool viewBuildLogActionEnabled = false;
 	if (projectInformation)
 	{
-		const auto& pos = FindProjectInformation(*projectInformation, [&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
+		const auto& pos = FindProjectInformation(*projectInformation, [&projectUrl](const ProjectInformation& projectInformation)
+			{ return projectInformation.projectUrl.toString() == projectUrl; });
 		if (pos)
 		{
 			volunteerOptionEnabled = projectStatus_isFailure(pos->status);
@@ -245,11 +248,20 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	{
 		if (selectedContextMenuItem == volunteerToFixAction)
 		{
-			volunteerToFix(projectName);
+			volunteerToFix(projectUrl);
 		}
 		else if (selectedContextMenuItem == viewBuildLogAction)
 		{
-			viewBuildLog(projectName);
+			viewBuildLog(projectUrl);
 		}
+	}
+}
+
+void ServerOverviewTable::onTreeRowDoubleClicked(const QModelIndex& index)
+{
+	const QTreeWidgetItem* item = itemFromIndex(index);
+	if (item)
+	{
+		QDesktopServices::openUrl(item->toolTip(0));
 	}
 }

@@ -80,7 +80,6 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	connect(ui.actionExit, &QAction::triggered, this, &BuildMonitor::exit);
 	connect(ui.actionSettings, &QAction::triggered, this, &BuildMonitor::showSettingsDialog);
 	connect(ui.actionProjects, &QAction::triggered, this, &BuildMonitor::showProjectsDialog);
-	connect(ui.serverOverviewTable, &ServerOverviewTable::doubleClicked, this, &BuildMonitor::onTableRowDoubleClicked);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::volunteerToFix, this, &BuildMonitor::onVolunteerToFix);
 	connect(ui.serverOverviewTable, &ServerOverviewTable::viewBuildLog, this, &BuildMonitor::onViewBuildLog);
 
@@ -498,33 +497,20 @@ void BuildMonitor::onProjectInformationError(const QString& errorMessage)
 	ui.statusBar->showMessage(errorMessage);
 }
 
-void BuildMonitor::onTableRowDoubleClicked(const QModelIndex& /* index */)
+void BuildMonitor::onVolunteerToFix(const QString& projectUrl)
 {
-	const QString projectName = "";//ui.serverOverviewTable->getProjectName(index.row());
-	ForEachProjectInformationWithBreak(lastProjectInformation, [&projectName] (const ProjectInformation& info)
+	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectUrl] (const ProjectInformation& projectInfo)
+		{ return projectUrl == projectInfo.projectUrl.toString(); }))
 	{
-		if (info.projectName == projectName)
-		{
-			QDesktopServices::openUrl(info.projectUrl);
-			return true;
-		}
-		
-		return false;
-	});
-}
-
-void BuildMonitor::onVolunteerToFix(const QString& projectName)
-{
-	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectName] (const ProjectInformation& projectInfo) { return projectName == projectInfo.projectName; }))
-	{
-		buildMonitorServerCommunication->requestReportFixing(projectName, info->buildNumber);
+		buildMonitorServerCommunication->requestReportFixing(projectUrl, info->buildNumber);
 		jenkins->refresh();
 	}
 }
 
-void BuildMonitor::onViewBuildLog(const QString& projectName)
+void BuildMonitor::onViewBuildLog(const QString& projectUrl)
 {
-	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectName] (const ProjectInformation& projectInfo) { return projectName == projectInfo.projectName; }))
+	if (const auto& info = FindProjectInformation(lastProjectInformation, [&projectUrl] (const ProjectInformation& projectInfo)
+		{ return projectUrl == projectInfo.projectUrl.toString(); }))
 	{
 		QDesktopServices::openUrl(info->projectUrl.toString() + QString::number(info->buildNumber) + "/consoleText");
 	}
