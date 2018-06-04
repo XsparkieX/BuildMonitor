@@ -76,8 +76,14 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformation*> > projectsToParse;
 	while (!foldersToParse.empty())
 	{
-		// TODO (SB): Expand condition to also look deeper in folders to ensure those aren't empty.
-		if (foldersToParse[0].second->projects.empty() && foldersToParse[0].second->folders.empty())
+		bool isEmptyTree = true;
+		ForEachProjectInformationWithBreak(*foldersToParse[0].second, [&isEmptyTree] (const ProjectInformation& info)
+		{
+			isEmptyTree = false;
+			return true;
+		});
+
+		if (isEmptyTree)
 		{
 			foldersToParse.erase(foldersToParse.begin());
 			continue;
