@@ -224,22 +224,20 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 	QMenu contextMenu;
 
 	QAction* volunteerToFixAction = contextMenu.addAction("Volunteer to Fix");
-	QString projectName = itemAt(location)->text(0);
-	bool volunteerOptionEnabled = false;
-	if (projectInformation)
-	{
-		const auto& pos = FindProjectInformation(*projectInformation, [&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
-		volunteerOptionEnabled = pos && projectStatus_isFailure(pos->status);
-	}
-	volunteerToFixAction->setEnabled(volunteerOptionEnabled);
-
 	QAction* viewBuildLogAction = contextMenu.addAction("View Build Log");
+	const QString projectName = itemAt(location)->text(0);
+	bool volunteerOptionEnabled = false;
 	bool viewBuildLogActionEnabled = false;
 	if (projectInformation)
 	{
 		const auto& pos = FindProjectInformation(*projectInformation, [&projectName](const ProjectInformation& projectInformation) { return projectInformation.projectName == projectName; });
-		viewBuildLogActionEnabled = pos && pos->buildNumber != 0;
+		if (pos)
+		{
+			volunteerOptionEnabled = projectStatus_isFailure(pos->status);
+			viewBuildLogActionEnabled = pos->buildNumber != 0;
+		}
 	}
+	volunteerToFixAction->setEnabled(volunteerOptionEnabled);
 	viewBuildLogAction->setEnabled(viewBuildLogActionEnabled);
 
 	const QAction* selectedContextMenuItem = contextMenu.exec(globalLocation);
