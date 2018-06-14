@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "ProjectInformation.h"
+
 #include <QtWidgets/qdialog.h>
 #include "ui_ProjectPicker.h"
 
@@ -25,7 +27,7 @@ class ProjectPickerDialog : public QDialog
 	Q_OBJECT
 
 public:
-	ProjectPickerDialog(QWidget* parent, class Settings& inSettings, const std::vector<QString>& inProjects);
+	ProjectPickerDialog(QWidget* parent, class Settings& inSettings, const ProjectInformationFolder& inProjects);
 
 private:
 	void constructListEntries();
@@ -33,6 +35,6 @@ private:
 	void onAccepted();
 
 	class Settings& settings;
-	const std::vector<QString>& projects;
+	const ProjectInformationFolder projects;
 	Ui::ProjectPickerDialog ui;
 };
