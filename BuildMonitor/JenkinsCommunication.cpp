@@ -176,6 +176,10 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 						folderReply.first->folders.emplace_back(folder);
 						folder->parent = folderReply.first;
 						folder->folderUrl = object["url"].toString();
+						if (folder->folderUrl.host() != reply->url().host())
+						{
+							folder->folderUrl.setHost(reply->url().host());
+						}
 						additionalFoldersToRetrieve.emplace_back(folder);
 						
 						continue;
