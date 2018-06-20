@@ -27,6 +27,7 @@ class ServerOverviewTable : public QTreeWidget
 public:
 	ServerOverviewTable(QWidget* parent);
 
+	void setSettings(const class Settings* inSettings);
 	void setIcons(const QIcon* inSucceeded, const QIcon* inSucceededBuilding,
 		const QIcon* inFailed, const QIcon* inFailedBuilding);
 	void setProjectInformation(const class ProjectInformationFolder& inProjectInformation);
@@ -43,6 +44,7 @@ private:
 	const QIcon* succeededBuilding;
 	const QIcon* failed;
 	const QIcon* failedBuilding;
+	const class Settings* settings;
 
 	const class ProjectInformationFolder* projectInformation;
 	QStringList headerLabels;

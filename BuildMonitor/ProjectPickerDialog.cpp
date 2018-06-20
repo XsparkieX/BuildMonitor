@@ -21,8 +21,9 @@
 
 #include <qabstractbutton.h>
 #include <qstandarditemmodel.h>
+#include <qtreewidget.h>
 
-ProjectPickerDialog::ProjectPickerDialog(QWidget* parent, Settings& inSettings, const std::vector<QString>& inProjects) :
+ProjectPickerDialog::ProjectPickerDialog(QWidget* parent, Settings& inSettings, const ProjectInformationFolder& inProjects) :
 	QDialog(parent),
 	settings(inSettings),
 	projects(inProjects)
@@ -35,35 +36,69 @@ ProjectPickerDialog::ProjectPickerDialog(QWidget* parent, Settings& inSettings, 
 }
 
 void ProjectPickerDialog::constructListEntries()
-{
-	QStandardItemModel* model = new QStandardItemModel(ui.projectList);
-
-	for (size_t i = 0; i < projects.size(); ++i)
+{	
+	ui.projectTree->clear();
+	
+	qint32 numProjects = 0;
+		
+	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformationFolder*> > foldersToParse;
+	for (const std::shared_ptr<ProjectInformationFolder>& folder : projects.folders)
 	{
-		QStandardItem* item = new QStandardItem();
-		item->setCheckable(true);
-		item->setCheckState(std::find(settings.enabledProjectList.begin(),
-			settings.enabledProjectList.end(), projects[i]) == settings.enabledProjectList.end() ?
-				Qt::CheckState::Unchecked : Qt::CheckState::Checked);
-		item->setText(projects[i]);
-		model->setItem(static_cast<int>(i), item);
+		foldersToParse.emplace_back(nullptr, folder.get());
 	}
+	
+	std::vector<std::pair<QTreeWidgetItem*, const ProjectInformation*> > projectsToParse;
+	while (!foldersToParse.empty())
+	{
+		QTreeWidgetItem* parent = new QTreeWidgetItem(foldersToParse[0].first);
+		if (foldersToParse[0].first == nullptr)
+		{
+			ui.projectTree->addTopLevelItem(parent);
+		}
+		
+		parent->setText(0, foldersToParse[0].second->folderName);		
+		for (const std::shared_ptr<ProjectInformationFolder>& folder : foldersToParse[0].second->folders)
+		{
+			foldersToParse.emplace_back(parent, folder.get());
+		}
+		
+		for (const std::shared_ptr<ProjectInformation>& info : foldersToParse[0].second->projects)
+		{
+			projectsToParse.emplace_back(parent, info.get());
+		}
+		
+		foldersToParse.erase(foldersToParse.begin());
+	}
+	
+	for (const std::pair<QTreeWidgetItem*, const ProjectInformation*>& pair : projectsToParse)
+	{
+		const ProjectInformation* info = pair.second;
+		QTreeWidgetItem* item = new QTreeWidgetItem(pair.first);
+		item->setText(0, info->projectName);
+		const auto findPred = [&info] (const QString& name)
+		{
+			return info->projectName == name;
+		};
+		
+		item->setCheckState(0, std::find_if(settings.enabledProjectList.begin(),
+			settings.enabledProjectList.end(), findPred) == settings.enabledProjectList.end() ?
+				Qt::CheckState::Unchecked : Qt::CheckState::Checked);
 
-	ui.projectList->setModel(model);
+		++numProjects;
+	}
+	
+	ui.projectTree->expandAll();
 }
 
 void ProjectPickerDialog::onAccepted()
 {
 	settings.enabledProjectList.clear();
-
-	QStandardItemModel* model = static_cast<QStandardItemModel*>(ui.projectList->model());
-	const int rowCount = model->rowCount();
-	for (int i = 0; i < rowCount; ++i)
+	
+	for (QTreeWidgetItemIterator pos(ui.projectTree); *pos; ++pos)
 	{
-		const QStandardItem* item = model->takeItem(i);
-		if (item->checkState() == Qt::CheckState::Checked)
+		if ((*pos)->checkState(0) == Qt::CheckState::Checked)
 		{
-			settings.enabledProjectList.emplace_back(item->text());
+			settings.enabledProjectList.emplace_back((*pos)->text(0));
 		}
 	}
 

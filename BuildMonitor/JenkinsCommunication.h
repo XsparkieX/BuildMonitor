@@ -31,9 +31,6 @@ public:
 
 	void setSettings(const class Settings* settings);
 	void refreshSettings();
-	
-	const std::vector<QString> getAllAvailableProjects() const;
-
 	void refresh();
 
 Q_SIGNALS:
@@ -50,8 +47,6 @@ private:
 	void onProjectInformationReceived();
 	void onLastSuccesfulProjectInformationReceived();
 
-	std::vector<QString> allProjectNames;
-	std::vector<QString> inProgressProjectNames;
 	ProjectInformationFolder projectInformation;
 
 	const class Settings* settings;
@@ -61,5 +56,6 @@ private:
 	std::vector<std::pair<std::shared_ptr<ProjectInformationFolder>, class QNetworkReply*> > jenkinsFolderReplies;
 	std::vector<std::pair<ProjectInformation*, class QNetworkReply*> > projectRetrievalReplies;
 	size_t jenkinsFolderRepliesCount;
+	size_t projectRetrievalRepliesNum;
 	size_t projectRetrievalRepliesCount;
 };

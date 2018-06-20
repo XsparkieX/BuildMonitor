@@ -55,6 +55,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	ui.setupUi(this);
 	ui.serverOverviewTable->setIcons(&successfulBuildIcon, &successfulBuildInProgressIcon,
 		&failedBuildIcon, &failedBuildInProgressIcon);
+	ui.serverOverviewTable->setSettings(&settings);
 
 	connect(&settings, &Settings::settingsChanged, this, &BuildMonitor::onSettingsChanged);
 	jenkins->setSettings(&settings);
@@ -296,7 +297,7 @@ void BuildMonitor::showSettingsDialog()
 
 void BuildMonitor::showProjectsDialog()
 {
-	auto projectsDialog = new ProjectPickerDialog(this, settings, jenkins->getAllAvailableProjects());
+	auto projectsDialog = new ProjectPickerDialog(this, settings, lastProjectInformation);
 	projectsDialog->setAttribute(Qt::WA_DeleteOnClose);
 	projectsDialog->show();
 }
@@ -405,7 +406,7 @@ void BuildMonitor::onProjectInformationUpdated(const ProjectInformationFolder& p
 
 			ForEachProjectInformationWithBreak(projectInformation, [&lastInfo, &showMessage, &switchedToFailed, &switchedToSuccess] (const ProjectInformation& info)
 			{
-				if (info.projectName == lastInfo.projectName)
+				if (!info.isIgnored && info.projectName == lastInfo.projectName)
 				{
 					if (switchedToFailed(lastInfo, info))
 					{
@@ -440,12 +441,15 @@ void BuildMonitor::onProjectInformationUpdated(const ProjectInformationFolder& p
 	bool isBuilding = false;
 	ForEachProjectInformation(projectInformation, [&isBuilding, &newStatusIndex](const ProjectInformation& info)
 	{
-		size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
-		if (statusIndex < newStatusIndex)
+		if (!info.isIgnored)
 		{
-			newStatusIndex = statusIndex;
+			size_t statusIndex = std::find(priorityList.begin(), priorityList.end(), info.status) - priorityList.begin();
+			if (statusIndex < newStatusIndex)
+			{
+				newStatusIndex = statusIndex;
+			}
+			isBuilding |= info.isBuilding;
 		}
-		isBuilding |= info.isBuilding;
 	});
 
 	if (priorityList[newStatusIndex] != projectBuildStatusGlobal || isBuilding != projectBuildStatusGlobalIsBuilding)

@@ -31,6 +31,7 @@ public:
 	ProjectInformation() :
 		status(EProjectStatus::Unknown),
 		isBuilding(false),
+		isIgnored(false),
 		buildNumber(0),
 		estimatedRemainingTime(0),
 		inProgressFor(0),
@@ -44,6 +45,7 @@ public:
 	std::shared_ptr<class ProjectInformationFolder> folder;
 	EProjectStatus status;
 	bool isBuilding;
+	bool isIgnored;
 	qint32 buildNumber;
 	qint64 estimatedRemainingTime;
 	qint64 inProgressFor;

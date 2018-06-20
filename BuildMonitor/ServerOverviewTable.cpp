@@ -18,7 +18,9 @@
 #include "ServerOverviewTable.h"
 
 #include "ProjectInformation.h"
+#include "Settings.h"
 
+#include <assert.h>
 #include <qdatetime.h>
 #include <qdesktopservices.h>
 #include <qheaderview.h>
@@ -34,6 +36,7 @@ ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
 	succeededBuilding(nullptr),
 	failed(nullptr),
 	failedBuilding(nullptr),
+	settings(nullptr),
 	projectInformation(nullptr)
 {
 	headerLabels.push_back("Project");
@@ -52,6 +55,11 @@ ServerOverviewTable::ServerOverviewTable(QWidget* parent) :
 	connect(this, &ServerOverviewTable::doubleClicked, this, &ServerOverviewTable::onTreeRowDoubleClicked);
 }
 
+void ServerOverviewTable::setSettings(const Settings* inSettings)
+{
+	settings = inSettings;
+}
+
 void ServerOverviewTable::setIcons(const QIcon* inSucceeded, const QIcon* inSucceededBuilding,
 	const QIcon* inFailed, const QIcon* inFailedBuilding)
 {
@@ -63,6 +71,8 @@ void ServerOverviewTable::setIcons(const QIcon* inSucceeded, const QIcon* inSucc
 
 void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& inProjectInformation)
 {
+	assert(settings);
+
 	projectInformation = &inProjectInformation;
 
 	clear();
@@ -79,8 +89,17 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 	while (!foldersToParse.empty())
 	{
 		bool isEmptyTree = true;
-		ForEachProjectInformationWithBreak(*foldersToParse[0].second, [&isEmptyTree] (const ProjectInformation&)
+		ForEachProjectInformationWithBreak(*foldersToParse[0].second, [&] (const ProjectInformation& info)
 		{
+			if (info.isIgnored)
+			{
+				return false;
+			}
+			
+			if (info.status == EProjectStatus::Disabled && !settings->showDisabledProjects)
+			{
+				return false;
+			}
 			isEmptyTree = false;
 			return true;
 		});
@@ -113,6 +132,12 @@ void ServerOverviewTable::setProjectInformation(const ProjectInformationFolder& 
 		
 	for (const std::pair<QTreeWidgetItem*, const ProjectInformation*>& pair : projectsToParse)
 	{
+		if (pair.second->isIgnored ||
+			(pair.second->status == EProjectStatus::Disabled && !settings->showDisabledProjects))
+		{
+			continue;
+		}
+		
 		const ProjectInformation* info = pair.second;
 		QTreeWidgetItem* item = new QTreeWidgetItem(pair.first);
 		item->setText(0, info->projectName);
