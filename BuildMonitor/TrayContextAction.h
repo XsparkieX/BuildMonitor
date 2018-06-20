@@ -1,6 +1,6 @@
 
 /* BuildMonitor - Monitor the state of projects in CI.
- * Copyright (C) 2017 Sander Brattinga
+ * Copyright (C) 2017-2018 Sander Brattinga
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
