@@ -121,6 +121,12 @@ void JenkinsCommunication::startProjectInformationRetrieval()
 				connect(projectRetrievalReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onProjectInformationReceived);
 			}
 		});
+		
+		if (projectRetrievalRepliesNum == 0)
+		{
+			projectRetrievalRepliesCount = -1;
+			onProjectInformationReceived();
+		}
 	}
 }
 
@@ -147,6 +153,12 @@ void JenkinsCommunication::startLastSuccesfulProjectInformationRetrieval()
 				connect(projectRetrievalReplies.back().second, &QNetworkReply::finished, this, &JenkinsCommunication::onLastSuccesfulProjectInformationReceived);
 			}
 		});
+		
+		if (projectRetrievalRepliesNum == 0)
+		{
+			projectRetrievalRepliesCount = -1;
+			onLastSuccesfulProjectInformationReceived();
+		}
 	}
 }
 
