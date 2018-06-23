@@ -22,7 +22,7 @@
 
 struct FixInfo
 {
-	QString projectName;
+	QString projectUrl;
 	QString userName;
 	qint32 buildNumber;
 };

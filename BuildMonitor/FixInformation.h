@@ -21,14 +21,14 @@
 
 struct FixInformation
 {
-	FixInformation(const QString& inProjectName, const QString& inUserName, const qint32& inBuildNumber) :
-		projectName(inProjectName),
+	FixInformation(const QString& inProjectUrl, const QString& inUserName, const qint32& inBuildNumber) :
+		projectUrl(inProjectUrl),
 		userName(inUserName),
 		buildNumber(inBuildNumber)
 	{
 	}
 
-	QString projectName;
+	QString projectUrl;
 	QString userName;
 	qint32 buildNumber;
 };

@@ -76,7 +76,13 @@ void AcceptThread::run()
 				for (const FixInfo& info : state)
 				{
 					QJsonObject fixStateObject;
-					fixStateObject["project_name"] = info.projectName;
+					QString projectName = info.projectUrl;
+					qint32 lastSlashIndex = projectName.lastIndexOf('/');
+					if (lastSlashIndex > 0)
+					{
+						projectName = projectName.right(projectName.size() - lastSlashIndex - 1);
+					}
+					fixStateObject["project_name"] = projectName;
 					fixStateObject["user_name"] = info.userName;
 					fixStateObject["build_number"] = info.buildNumber;
 					responseArray.push_back(fixStateObject);
@@ -93,6 +99,57 @@ void AcceptThread::run()
 			{
 				const QJsonObject requestInfo = root["request_info"].toObject();
 				emit markFixed(requestInfo["project_name"].toString(), requestInfo["build_number"].toInt());
+			}
+		}
+		else if (root["version"].toInt() == 2)
+		{
+			if (root["request_type"].toString() == "report_fixing")
+			{
+				const QJsonObject requestInfo = root["request_info"].toObject();
+				const FixInfo fixInfo = {
+					requestInfo["project_url"].toString(),
+					requestInfo["user_name"].toString(),
+					requestInfo["build_number"].toInt()
+				};
+
+				emit fixStarted(fixInfo);
+			}
+			else if (root["request_type"].toString() == "fix_state")
+			{
+				const QJsonObject requestInfo = root["request_info"].toObject();
+				const QJsonArray projectsArray = requestInfo["projects"].toArray();
+				std::vector<QString> projects;
+				for (const QJsonValue& element : projectsArray)
+				{
+					projects.emplace_back(element.toString());
+				}
+
+				const std::vector<FixInfo> state = server.getProjectsState(projects);
+
+				QJsonObject root;
+				root["version"] = 2;
+				root["response_type"] = "fix_state";
+				QJsonArray responseArray = QJsonArray();
+				for (const FixInfo& info : state)
+				{
+					QJsonObject fixStateObject;
+					fixStateObject["project_url"] = info.projectUrl;
+					fixStateObject["user_name"] = info.userName;
+					fixStateObject["build_number"] = info.buildNumber;
+					responseArray.push_back(fixStateObject);
+				}
+				root["response_info"] = responseArray;
+
+				QJsonDocument document;
+				document.setObject(root);
+				socket.write(document.toBinaryData());
+				socket.flush();
+				socket.waitForBytesWritten(3000);
+			}
+			else if (root["request_type"].toString() == "mark_fixed")
+			{
+				const QJsonObject requestInfo = root["request_info"].toObject();
+				emit markFixed(requestInfo["project_url"].toString(), requestInfo["build_number"].toInt());
 			}
 		}
 	}

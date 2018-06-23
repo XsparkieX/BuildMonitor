@@ -77,13 +77,16 @@ void BuildMonitorServerCommunication::requestFixInformation(const ProjectInforma
 	if (!worker->containsRequestType(BuildMonitorRequestType::FixInformation))
 	{
 		QJsonObject root;
-		root["version"] = 1;
+		root["version"] = 2;
 		root["request_type"] = "fix_state";
 		QJsonObject requestInfo;
 		QJsonArray projectsArray;
 		ForEachProjectInformation(projects, [&projectsArray] (const ProjectInformation& info)
 		{
-			projectsArray.push_back(info.projectName);
+			if (!info.isIgnored)
+			{
+				projectsArray.push_back(info.projectUrl.toString());
+			}
 		});
 		requestInfo["projects"] = projectsArray;
 		root["request_info"] = requestInfo;
@@ -95,13 +98,13 @@ void BuildMonitorServerCommunication::requestFixInformation(const ProjectInforma
 	}
 }
 
-void BuildMonitorServerCommunication::requestReportFixing(const QString& projectName, const qint32 buildNumber)
+void BuildMonitorServerCommunication::requestReportFixing(const QString& projectUrl, const qint32 buildNumber)
 {
 	QJsonObject root;
-	root["version"] = 1;
+	root["version"] = 2;
 	root["request_type"] = "report_fixing";
 	QJsonObject requestInfo;
-	requestInfo["project_name"] = projectName;
+	requestInfo["project_url"] = projectUrl;
 	QString userName = qgetenv("USER");
 	if (userName.isEmpty())
 	{
@@ -117,13 +120,13 @@ void BuildMonitorServerCommunication::requestReportFixing(const QString& project
 	emit processQueue();
 }
 
-void BuildMonitorServerCommunication::requestReportFixed(const QString& projectName, const qint32 buildNumber)
+void BuildMonitorServerCommunication::requestReportFixed(const QString& projectUrl, const qint32 buildNumber)
 {
 	QJsonObject root;
-	root["version"] = 1;
+	root["version"] = 2;
 	root["request_type"] = "mark_fixed";
 	QJsonObject requestInfo;
-	requestInfo["project_name"] = projectName;
+	requestInfo["project_url"] = projectUrl;
 	requestInfo["build_number"] = buildNumber;
 	root["request_info"] = requestInfo;
 	QJsonDocument doc;
@@ -137,7 +140,7 @@ void BuildMonitorServerCommunication::onResponseGenerated(QByteArray data)
 {
 	const QJsonDocument json = QJsonDocument::fromBinaryData(data);
 	const QJsonObject root = json.object();
-	if (root["version"].toInt() == 1)
+	if (root["version"].toInt() == 2)
 	{
 		if (root["response_type"].toString() == "fix_state")
 		{
@@ -147,7 +150,7 @@ void BuildMonitorServerCommunication::onResponseGenerated(QByteArray data)
 			{
 				const QJsonObject object = value.toObject();
 				fixInformation.emplace_back(
-					object["project_name"].toString(),
+					object["project_url"].toString(),
 					object["user_name"].toString(),
 					object["build_number"].toInt()
 				);

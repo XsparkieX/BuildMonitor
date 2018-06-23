@@ -469,7 +469,12 @@ void BuildMonitor::onFixInformationUpdated(const std::vector<FixInformation>& fi
 	{
 		const std::shared_ptr<ProjectInformation>& result = FindProjectInformation(lastProjectInformation, [&info](const ProjectInformation& projectInfo)
 		{
-			return projectInfo.projectName == info.projectName;
+			// Backwards compatibility with v1 data.
+			if (!info.projectUrl.contains('/'))
+			{
+				return info.projectUrl == projectInfo.projectName;
+			}
+			return info.projectUrl == projectInfo.projectUrl.toString();
 		});
 		
 		if (result)
@@ -482,7 +487,7 @@ void BuildMonitor::onFixInformationUpdated(const std::vector<FixInformation>& fi
 				}
 				else
 				{
-					buildMonitorServerCommunication->requestReportFixed(result->projectName, result->buildNumber);
+					buildMonitorServerCommunication->requestReportFixed(result->projectUrl.toString(), result->buildNumber);
 				}
 			}
 		}

@@ -42,7 +42,7 @@ void FixOverviewTable::setFixInformation(const std::vector<FixInfo>& fixInformat
 
 	for (const auto info : fixInformation)
 	{
-		itemPool.push_back(new QTableWidgetItem(info.projectName));
+		itemPool.push_back(new QTableWidgetItem(info.projectUrl));
 		itemPool.push_back(new QTableWidgetItem(info.userName));
 		QString buildNumber;
 		QTextStream buildNumberStream(&buildNumber);

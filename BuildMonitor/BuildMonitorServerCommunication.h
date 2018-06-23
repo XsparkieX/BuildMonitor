@@ -34,8 +34,8 @@ public:
 	
 	void setServerAddress(const QString& serverAddress);
 	void requestFixInformation(const class ProjectInformationFolder& projects);
-	void requestReportFixing(const QString& projectName, const qint32 buildNumber);
-	void requestReportFixed(const QString& projectName, const qint32 buildNumber);
+	void requestReportFixing(const QString& projectUrl, const qint32 buildNumber);
+	void requestReportFixed(const QString& projectUrl, const qint32 buildNumber);
 
 Q_SIGNALS:
 	void onFixInformationUpdated(const std::vector<FixInformation>& fixInformation);

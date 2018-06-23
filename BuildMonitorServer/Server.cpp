@@ -44,7 +44,7 @@ std::vector<FixInfo> Server::getProjectsState(const std::vector<QString>& projec
 	{
 		for (const QString& projectName : projects)
 		{
-			if (info.projectName == projectName)
+			if (info.projectUrl == projectName)
 			{
 				result.push_back(info);
 				break;
@@ -72,7 +72,7 @@ void Server::onFixStarted(const FixInfo& fixInfo)
 	fixInfoLock.lock();
 
 	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
-		[&fixInfo](const FixInfo& info) { return info.projectName == fixInfo.projectName; });
+		[&fixInfo](const FixInfo& info) { return info.projectUrl == fixInfo.projectUrl; });
 	if (foundElement != fixInfos.end())
 	{
 		*foundElement = fixInfo;
@@ -87,12 +87,12 @@ void Server::onFixStarted(const FixInfo& fixInfo)
 	fixInfoLock.unlock();
 }
 
-void Server::onMarkFixed(const QString& projectName, const qint32 buildNumber)
+void Server::onMarkFixed(const QString& projectUrl, const qint32 buildNumber)
 {
 	fixInfoLock.lock();
 
 	std::vector<FixInfo>::iterator foundElement = std::find_if(fixInfos.begin(), fixInfos.end(),
-		[&projectName, &buildNumber](const FixInfo& info) { return info.projectName == projectName && info.buildNumber < buildNumber; });
+		[&projectUrl, &buildNumber](const FixInfo& info) { return info.projectUrl == projectUrl && info.buildNumber < buildNumber; });
 	if (foundElement != fixInfos.end())
 	{
 		fixInfos.erase(foundElement);

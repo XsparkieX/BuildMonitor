@@ -33,7 +33,7 @@ public:
 
 signals:
 	void fixStarted(const FixInfo& fixInfo);
-	void markFixed(const QString& projectName, const qint32 buildNumber);
+	void markFixed(const QString& projectUrl, const qint32 buildNumber);
 	void error(QTcpSocket::SocketError socketError);
 
 private:
