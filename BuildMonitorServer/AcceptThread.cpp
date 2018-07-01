@@ -77,7 +77,7 @@ void AcceptThread::run()
 				{
 					QJsonObject fixStateObject;
 					QString projectName = info.projectUrl;
-					qint32 lastSlashIndex = projectName.lastIndexOf('/');
+					const qint32 lastSlashIndex = projectName.lastIndexOf('/');
 					if (lastSlashIndex > 0)
 					{
 						projectName = projectName.right(projectName.size() - lastSlashIndex - 1);

@@ -42,12 +42,36 @@ std::vector<FixInfo> Server::getProjectsState(const std::vector<QString>& projec
 
 	for (const FixInfo& info : fixInfos)
 	{
-		for (const QString& projectName : projects)
+		for (const QString& projectUrl : projects)
 		{
-			if (info.projectUrl == projectName)
+			if (info.projectUrl == projectUrl)
 			{
 				result.push_back(info);
 				break;
+			}
+			else if (!projectUrl.contains('/'))
+			{
+				const qint32 lastSlashIndex = info.projectUrl.lastIndexOf('/');
+				if (lastSlashIndex > 0)
+				{
+					const QString projectName = info.projectUrl.right(info.projectUrl.size() - lastSlashIndex - 1);
+					if (projectName == projectUrl)
+					{
+						result.push_back(info);
+					}
+				}
+			}
+			else if (!info.projectUrl.contains('/') && projectUrl.contains('/'))
+			{
+				const qint32 lastSlashIndex = projectUrl.lastIndexOf('/');
+				if (lastSlashIndex > 0)
+				{
+					const QString projectName = projectUrl.right(projectUrl.size() - lastSlashIndex - 1);
+					if (projectName == info.projectUrl)
+					{
+						result.push_back(info);
+					}
+				}
 			}
 		}
 	}
