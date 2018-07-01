@@ -75,9 +75,10 @@ void ProjectPickerDialog::constructListEntries()
 		const ProjectInformation* info = pair.second;
 		QTreeWidgetItem* item = new QTreeWidgetItem(pair.first);
 		item->setText(0, info->projectName);
+		item->setToolTip(0, info->projectUrl.toString());
 		const auto findPred = [&info] (const QString& name)
 		{
-			return info->projectName == name;
+			return info->projectUrl == name;
 		};
 		
 		item->setCheckState(0, std::find_if(settings.enabledProjectList.begin(),
@@ -98,7 +99,7 @@ void ProjectPickerDialog::onAccepted()
 	{
 		if ((*pos)->checkState(0) == Qt::CheckState::Checked)
 		{
-			settings.enabledProjectList.emplace_back((*pos)->text(0));
+			settings.enabledProjectList.emplace_back((*pos)->toolTip(0));
 		}
 	}
 

@@ -202,6 +202,11 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					
 					std::shared_ptr<ProjectInformation> info(new ProjectInformation);
 					info->projectName = object["name"].toString();
+					info->projectUrl = object["url"].toString();
+					if (info->projectUrl.host() != reply->url().host())
+					{
+						info->projectUrl.setHost(reply->url().host());
+					}
 
 					if (settings->useRegExProjectFilter)
 					{
@@ -214,19 +219,13 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					else
 					{
 						if (std::find(settings->enabledProjectList.begin(),
-								settings->enabledProjectList.end(), info->projectName) ==
+								settings->enabledProjectList.end(), info->projectUrl.toString()) ==
 									settings->enabledProjectList.end())
 						{
 							info->isIgnored = true;
 						}
 					}
-
-					info->projectUrl = object["url"].toString();
-					if (info->projectUrl.host() != reply->url().host())
-					{
-						info->projectUrl.setHost(reply->url().host());
-					}
-					
+				
 					const QString buildStatus = object["color"].toString();
 					if (buildStatus.startsWith("blue"))
 					{
