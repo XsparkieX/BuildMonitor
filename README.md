@@ -17,7 +17,6 @@ Notifications are shown when the build becomes unstable and when it's back stabl
 ### Prerequisites
 * Qt5
 * Microsoft Visual Studio 2017
-* 7zip (if you want to create an installer)
 * NSIS Installer framework (if you want to create an installer)
 
 ### Steps
