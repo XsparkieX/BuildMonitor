@@ -252,7 +252,12 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 
 	QAction* volunteerToFixAction = contextMenu.addAction("Volunteer to Fix");
 	QAction* viewBuildLogAction = contextMenu.addAction("View Build Log");
-	const QString projectUrl = itemAt(location)->toolTip(0);
+	QString projectUrl;
+	if (const QTreeWidgetItem* item = itemAt(location))
+	{
+		projectUrl = item->toolTip(0);
+	}
+
 	bool volunteerOptionEnabled = false;
 	bool viewBuildLogActionEnabled = false;
 	if (projectInformation)
