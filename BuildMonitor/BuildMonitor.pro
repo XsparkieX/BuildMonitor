@@ -12,13 +12,14 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BuildMonitor
 TEMPLATE = app
 unix:QMAKE_CXXFLAGS += -std=c++11
+unix:QMAKE_LFLAGS += -no-pie
 
 SOURCES += main.cpp\
     BuildMonitor.cpp \
     BuildMonitorServerCommunication.cpp \
     BuildMonitorServerWorker.cpp \
     JenkinsCommunication.cpp \
-	ProjectPickerDialog.cpp \
+    ProjectPickerDialog.cpp \
     ServerOverviewTable.cpp \
     Settings.cpp \
     SettingsDialog.cpp \
@@ -30,7 +31,7 @@ HEADERS  += \
     BuildMonitorServerWorker.h \
     FixInformation.h \
     JenkinsCommunication.h \
-	ProjectPickerDialog.h \
+    ProjectPickerDialog.h \
     ProjectInformation.h \
     ProjectStatus.h \
     ServerOverviewTable.h \
