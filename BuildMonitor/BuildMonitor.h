@@ -71,7 +71,7 @@ private:
 	QIcon failedBuildInProgressIcon;
 	class QSystemTrayIcon* tray;
 	class TrayContextMenu* trayContextMenu;
-#ifdef _MSC_VER
+#ifdef _WIN32
 	class QWinTaskbarButton* winTaskbarButton;
 #endif
 	Settings settings;

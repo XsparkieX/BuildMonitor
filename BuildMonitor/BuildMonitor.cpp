@@ -30,7 +30,7 @@
 #include <qmessagebox.h>
 #include <qsettings.h>
 #include <qtimer.h>
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <qwintaskbarbutton.h>
 #include <qwintaskbarprogress.h>
 #endif
@@ -44,7 +44,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	failedBuildInProgressIcon(":/BuildMonitor/Resources/failed_build_in-progress.png"),
 	tray(new QSystemTrayIcon(QIcon(), this)),
 	trayContextMenu(new TrayContextMenu(this)),
-#ifdef _MSC_VER
+#ifdef _WIN32
 	winTaskbarButton(new QWinTaskbarButton(this)),
 #endif
 	buildMonitorServerCommunication(new BuildMonitorServerCommunication(this)),
@@ -184,7 +184,7 @@ void BuildMonitor::updateIcons()
 	}
 
 	tray->setIcon(*icon);
-#if _MSC_VER
+#if _WIN32
 	winTaskbarButton->setWindow(windowHandle());
 	winTaskbarButton->setOverlayIcon(*icon);
 #endif
@@ -192,7 +192,7 @@ void BuildMonitor::updateIcons()
 
 void BuildMonitor::updateTaskbarProgress()
 {
-#if _MSC_VER
+#ifdef _WIN32
 	if (!settings.showProgressForProject.isEmpty())
 	{
 		ForEachProjectInformationWithBreak(lastProjectInformation, [this] (const ProjectInformation& info)
@@ -263,7 +263,7 @@ void BuildMonitor::showWindow()
 
 void BuildMonitor::addToStartup()
 {
-#if _MSC_VER
+#ifdef _WIN32
 	QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	settings.setValue("BuildMonitor", "\"" + QCoreApplication::applicationFilePath().replace('/', '\\') + "\" --minimized");
 #else
@@ -274,7 +274,7 @@ void BuildMonitor::addToStartup()
 
 void BuildMonitor::removeFromStartup()
 {
-#if _MSC_VER
+#ifdef _WIN32
 	QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	settings.remove("BuildMonitor");
 #else

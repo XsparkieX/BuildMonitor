@@ -28,5 +28,7 @@ HEADERS  += AcceptThread.h \
 RESOURCES += \
     BuildMonitorServer.qrc
 
+RC_ICONS = BuildMonitor.ico
+
 FORMS += \
     BuildMonitorServer.ui

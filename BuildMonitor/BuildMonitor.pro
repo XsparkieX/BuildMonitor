@@ -48,4 +48,6 @@ FORMS    += BuildMonitor.ui \
 RESOURCES += \
     BuildMonitor.qrc
 
+RC_FILE = BuildMonitor.rc
+
 DISTFILES +=
