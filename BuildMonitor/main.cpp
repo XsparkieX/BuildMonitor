@@ -31,5 +31,6 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	BuildMonitor w;
+	w.setAttribute(Qt::WA_DeleteOnClose);
 	return a.exec();
 }

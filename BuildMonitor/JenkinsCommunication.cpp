@@ -189,7 +189,6 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					{
 						std::shared_ptr<ProjectInformationFolder> folder(new ProjectInformationFolder(object["name"].toString()));
 						folderReply.first->folders.emplace_back(folder);
-						folder->parent = folderReply.first;
 						folder->folderUrl = object["url"].toString();
 						if (folder->folderUrl.host() != reply->url().host())
 						{

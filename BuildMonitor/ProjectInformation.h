@@ -42,7 +42,6 @@ public:
 
 	QString projectName;
 	QUrl projectUrl;
-	std::shared_ptr<class ProjectInformationFolder> folder;
 	EProjectStatus status;
 	bool isBuilding;
 	bool isIgnored;
@@ -69,7 +68,6 @@ public:
 	
 	QString folderName;
 	QUrl folderUrl;
-	std::shared_ptr<ProjectInformationFolder> parent;
 	std::vector<std::shared_ptr<ProjectInformationFolder> > folders;
 	std::vector<std::shared_ptr<ProjectInformation> > projects;
 };

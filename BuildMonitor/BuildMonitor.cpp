@@ -50,6 +50,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	buildMonitorServerCommunication(new BuildMonitorServerCommunication(this)),
 	jenkins(new JenkinsCommunication(this)),
 	projectBuildStatusGlobal(EProjectStatus::Unknown),
+	projectBuildStatusGlobalIsBuilding(false),
 	exitApplication(false)
 {
 	ui.setupUi(this);
