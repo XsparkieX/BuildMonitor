@@ -131,6 +131,11 @@ void Server::onThreadFinished()
 {
 	threads.erase(std::remove_if(threads.begin(), threads.end(), [](const AcceptThread* element)
 	{
-		return element->isFinished();
+		if (element->isFinished())
+		{
+			delete element;
+			return true;
+		}
+		return false;
 	}), threads.end());
 }
