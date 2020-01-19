@@ -8,7 +8,7 @@ set PATH=C:\Qt\Tools\mingw730_64\bin;%PATH%
 rmdir /S /Q Build
 mkdir Build
 pushd Build
-C:\Qt\5.12.2\mingw73_64\bin\qmake.exe -o Makefile ..\..\BuildMonitorServer.pro -spec win32-g++ CONFIG+=release CONFIG+=qml_release
+C:\Qt\5.13.0\mingw73_64\bin\qmake.exe -o Makefile ..\..\BuildMonitorServer.pro -spec win32-g++ CONFIG+=release CONFIG+=qml_release
 mingw32-make -j4 -f Makefile.Release
 if %errorlevel% neq 0 (
 	echo Project failed to compile.
@@ -20,7 +20,7 @@ popd
 rmdir /S /Q "Files"
 mkdir "Files"
 copy "Build\release\BuildMonitorServer.exe" "Files\"
-"C:\Qt\5.12.2\mingw73_64\bin\windeployqt.exe" "Files\BuildMonitorServer.exe"
+"C:\Qt\5.13.0\mingw73_64\bin\windeployqt.exe" "Files\BuildMonitorServer.exe"
 if %errorlevel% neq 0 (
 	echo Failed to generate dependencies.
 	pause

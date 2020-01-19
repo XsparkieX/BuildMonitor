@@ -1,7 +1,7 @@
 !include "LogicLib.nsh"
 !include "Include\nsProcess.nsh"
 
-!define VERSION "1.3.1"
+!define VERSION "1.3.2"
 
 Name "BuildMonitorServer"
 InstallDir "$PROGRAMFILES64\BuildMonitorServer"
