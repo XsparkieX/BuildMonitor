@@ -16,7 +16,7 @@ Notifications are shown when the build becomes unstable and when it's back stabl
 ## Windows
 ### Prerequisites
 * Qt5
-* Microsoft Visual Studio 2017
+* MingW compiler toolchain from Qt5 installer
 * NSIS Installer framework (if you want to create an installer)
 
 ### Steps
@@ -25,6 +25,6 @@ Notifications are shown when the build becomes unstable and when it's back stabl
 
 or
 
-1. Open BuildMonitor.sln
-2. Compile from Visual Studio 2017 (Note: there is no installer created this way)
+1. Open the .pro file located in the BuildMonitor folder and associate your Qt Kit with the project.
+2. Build for the configurtion you want and it will result in the executable being generated.
 
