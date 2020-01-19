@@ -1,5 +1,5 @@
 /* BuildMonitor - Monitor the state of projects in CI.
- * Copyright (C) 2017-2019 Sander Brattinga
+ * Copyright (C) 2017-2020 Sander Brattinga
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@ public:
 
 	QString projectName;
 	QUrl projectUrl;
-	std::shared_ptr<class ProjectInformationFolder> folder;
 	EProjectStatus status;
 	bool isBuilding;
 	bool isIgnored;
@@ -69,7 +68,6 @@ public:
 	
 	QString folderName;
 	QUrl folderUrl;
-	std::shared_ptr<ProjectInformationFolder> parent;
 	std::vector<std::shared_ptr<ProjectInformationFolder> > folders;
 	std::vector<std::shared_ptr<ProjectInformation> > projects;
 };

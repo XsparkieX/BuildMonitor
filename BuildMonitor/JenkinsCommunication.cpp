@@ -1,5 +1,5 @@
 /* BuildMonitor - Monitor the state of projects in CI.
- * Copyright (C) 2017-2019 Sander Brattinga
+ * Copyright (C) 2017-2020 Sander Brattinga
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -189,7 +189,6 @@ void JenkinsCommunication::onJenkinsInformationReceived()
 					{
 						std::shared_ptr<ProjectInformationFolder> folder(new ProjectInformationFolder(object["name"].toString()));
 						folderReply.first->folders.emplace_back(folder);
-						folder->parent = folderReply.first;
 						folder->folderUrl = object["url"].toString();
 						if (folder->folderUrl.host() != reply->url().host())
 						{

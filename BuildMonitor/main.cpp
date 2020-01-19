@@ -1,5 +1,5 @@
 /* BuildMonitor - Monitor the state of projects in CI.
- * Copyright (C) 2017-2019 Sander Brattinga
+ * Copyright (C) 2017-2020 Sander Brattinga
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,5 +31,6 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	BuildMonitor w;
+	w.setAttribute(Qt::WA_DeleteOnClose);
 	return a.exec();
 }
