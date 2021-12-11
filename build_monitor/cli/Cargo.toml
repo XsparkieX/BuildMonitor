@@ -1,0 +1,11 @@
+[package]
+name = "build_monitor_cli"
+description = "A simple commandline app to query Jenkins."
+version = "0.1.0"
+authors = ["XsparkieX <XsparkieX@users.noreply.github.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+build_monitor = { path = "../" }
+futures = { version = "0.3" }

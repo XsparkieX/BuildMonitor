@@ -1,0 +1,20 @@
+[package]
+name = "build_monitor"
+description = "A library that helps with getting project information from Jenkins."
+version = "0.1.0"
+authors = ["XsparkieX <XsparkieX@users.noreply.github.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "build_monitor"
+
+[dependencies]
+bincode = { version = "1.3.3" }
+chrono = { version = "0.4" }
+futures = { version = "0.3" }
+json = { version = "0.12.4" }
+libc = { version = "0.2" }
+reqwest = { version = "0.11", features = ["blocking"] }
+serde = { version = "1.0.126", features = ["derive"] }
+socket2 = { version = "0.4.0" }

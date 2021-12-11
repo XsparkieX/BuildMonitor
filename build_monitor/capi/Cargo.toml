@@ -1,0 +1,17 @@
+[package]
+name = "build_monitor_capi"
+description = "Helper library for creating a foreign function interface for build monitor."
+version = "0.1.0"
+authors = ["XsparkieX <XsparkieX@users.noreply.github.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "build_monitor_capi"
+# crate-type = ["staticlib"]
+crate-type = ["cdylib"]
+
+[dependencies]
+build_monitor = { path = "../" }
+futures = { version = "0.3" }
+libc = { version = "0.2" }
