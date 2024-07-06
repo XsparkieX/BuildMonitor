@@ -21,7 +21,7 @@ fn retrieve_info(address: &str) {
 
 fn client(address: &str) {
     let mut monitor = Monitor::new(0, "");
-    monitor.start_client(address);
+    monitor.start_client(address, "0.0.0.0:8091", false);
     loop {
         {
             match block_on(monitor.refresh_projects()) {
@@ -38,15 +38,15 @@ fn client(address: &str) {
     }
 }
 
-fn server(address: &str, broadcast: &str) {
-    let mut monitor = Monitor::new(0, address);
+fn server(jenkins_address: &str, address: &str) {
+    let mut monitor = Monitor::new(0, jenkins_address);
     println!("Refreshing initial projects...");
     match block_on(monitor.refresh_projects()) {
         Ok(_) => {}
         Err(e) => eprintln!("Failed to refresh projects. Error: {}", e),
     }
     println!("Starting server...");
-    monitor.start_server(broadcast);
+    monitor.start_server(address, false);
 
     let mut elapsed_time: Duration = Duration::new(10, 0);
     loop {
@@ -84,7 +84,7 @@ fn main() {
         }
         else if args[1] == "--client" {
             if args.len() != 3 {
-                println!("Usage build_monitor_cli.exe --client {{broadcast_address}}");
+                println!("Usage build_monitor_cli.exe --client {{address}}");
             }
             else {
                 client(&args[2]);
@@ -92,7 +92,7 @@ fn main() {
         }
         else if args[1] == "--server" {
             if args.len() != 4 {
-                println!("Usage build_monitor_cli.exe --server {{url_to_buildserver}} {{broadcast_address}}");
+                println!("Usage build_monitor_cli.exe --server {{url_to_buildserver}} {{address}}");
             }
             else {
                 server(&args[2], &args[3]);

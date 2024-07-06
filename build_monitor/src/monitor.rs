@@ -177,11 +177,12 @@ impl Monitor {
         hasher.finish()
     }
 
-    pub fn start_server(&mut self, multicast_address: &str) {
+    pub fn start_server(&mut self, address: &str, multicast: bool) {
         self.server = Some(MonitorServer::new(
-            multicast_address.parse().unwrap(),
+            address.parse().unwrap(),
             self.version,
             self.projects.clone(),
+            multicast
         ));
     }
 
@@ -189,10 +190,12 @@ impl Monitor {
         self.server = None;
     }
 
-    pub fn start_client(&mut self, multicast_address: &str) {
+    pub fn start_client(&mut self, server_address: &str, client_address: &str, multicast: bool) {
         self.client = Some(MonitorClient::new(
-            multicast_address.parse().unwrap(),
+            server_address.parse().unwrap(),
+            client_address.parse().unwrap(),
             self.version,
+            multicast
         ));
     }
 
