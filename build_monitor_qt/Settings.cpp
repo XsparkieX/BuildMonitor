@@ -26,7 +26,8 @@
 Settings::Settings(QObject* parent) :
 	QObject(parent),
 	projectSettingsFolder(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)),
-	multicastAddress("239.255.13.37:8090"),
+	serverAddress("239.255.13.37:8090"),
+	multicast(true),
 	showDisabledProjects(false),
 	closeToTrayOnStartup(false),
 	windowMaximized(false),
@@ -48,10 +49,16 @@ bool Settings::loadSettings()
 	QJsonDocument settingsJson = QJsonDocument::fromJson(settingsFile.readAll());
 	QJsonObject root = settingsJson.object();
 
-	QJsonValue multicastAddressValue = root.value("multicastAddress");
-	if (multicastAddressValue.isString())
+	QJsonValue serverAddressValue = root.value("serverAddress");
+	if (serverAddressValue.isString())
 	{
-		multicastAddress = multicastAddressValue.toString().toStdString();
+		serverAddress = serverAddressValue.toString().toStdString();
+	}
+
+	QJsonValue multicastValue = root.value("multicast");
+	if (multicastValue.isBool())
+	{
+		multicast = multicastValue.toBool();
 	}
 
 	QJsonValue ignoreUserListValue = root.value("ignoreUserList");
@@ -133,7 +140,8 @@ void Settings::saveSettings()
 {
 	QJsonObject root;
 
-	root.insert("multicastAddress", QString::fromStdString(multicastAddress));
+	root.insert("serverAddress", QString::fromStdString(serverAddress));
+	root.insert("multicast", multicast);
 
 	QJsonArray ignoreUserListArray;
 	for (const auto& user : ignoreUserList)

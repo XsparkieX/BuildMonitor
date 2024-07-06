@@ -33,7 +33,8 @@ public:
 
 	const QDir projectSettingsFolder;
 
-	std::string multicastAddress;
+	std::string serverAddress;
+	bool multicast;
 	std::vector<std::string> ignoreUserList;
 	bool showDisabledProjects;
 	std::vector<uint64_t> notifyList;

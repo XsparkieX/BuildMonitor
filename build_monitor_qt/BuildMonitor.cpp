@@ -75,7 +75,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	communicationThread = std::make_unique<std::thread>([&] ()
 		{
 			buildMonitorHandle = bm_create("");
-			bm_start_client(buildMonitorHandle, settings.multicastAddress.c_str());
+			bm_start_client(buildMonitorHandle, settings.serverAddress.c_str(), settings.multicast);
 
 			while (communicationThreadRunning)
 			{
