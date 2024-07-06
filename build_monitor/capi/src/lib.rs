@@ -102,9 +102,9 @@ pub extern "C" fn bm_refresh_projects(handle: u8) -> i32 {
 }
 
 #[no_mangle]
-pub extern "C" fn bm_start_server(handle: u8, multicast_address_cstr: *const c_char) {
+pub extern "C" fn bm_start_server(handle: u8, address_cstr: *const c_char, multicast: bool) {
     unsafe {
-        let multicast_address = match CStr::from_ptr(multicast_address_cstr).to_str() {
+        let address = match CStr::from_ptr(address_cstr).to_str() {
             Ok(val) => val,
             Err(e) => panic!("{}", e),
         };
@@ -112,7 +112,7 @@ pub extern "C" fn bm_start_server(handle: u8, multicast_address_cstr: *const c_c
         match MONITORS.get(handle) {
             Ok(monitor_cell) => {
                 let mut monitor = monitor_cell.borrow_mut();
-                monitor.start_server(multicast_address);
+                monitor.start_server(address, multicast);
             },
             Err(e) => {
                 eprintln!("{}", e);
@@ -137,9 +137,9 @@ pub extern "C" fn bm_stop_server(handle: u8) {
 }
 
 #[no_mangle]
-pub extern "C" fn bm_start_client(handle: u8, multicast_address_cstr: *const c_char) {
+pub extern "C" fn bm_start_client(handle: u8, server_address_cstr: *const c_char, multicast: bool) {
     unsafe {
-        let multicast_address = match CStr::from_ptr(multicast_address_cstr).to_str() {
+        let server_address = match CStr::from_ptr(server_address_cstr).to_str() {
             Ok(val) => val,
             Err(e) => panic!("{}", e),
         };
@@ -147,7 +147,7 @@ pub extern "C" fn bm_start_client(handle: u8, multicast_address_cstr: *const c_c
         match MONITORS.get(handle) {
             Ok(monitor_cell) => {
                 let mut monitor = monitor_cell.borrow_mut();
-                monitor.start_client(multicast_address);
+                monitor.start_client(server_address, "0.0.0.0:0", multicast);
             },
             Err(e) => {
                 eprintln!("{}", e);
