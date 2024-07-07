@@ -85,7 +85,6 @@ impl Monitor {
             Some(client) => {
                 let (has_projects, new_projects) = client.get_projects();
                 if has_projects {
-                    println!("Found new projects");
                     *self.projects.write().unwrap() = new_projects;
                 }
             }
