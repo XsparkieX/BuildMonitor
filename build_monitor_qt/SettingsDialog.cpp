@@ -27,6 +27,8 @@ SettingsDialog::SettingsDialog(QWidget* parent, class Settings& inSettings) :
 {
 	ui.setupUi(this);
 
+	ui.serverAddress->setText(QString::fromStdString(inSettings.serverAddress));
+	ui.multicast->setChecked(inSettings.multicast);
 	auto ignoreUserList = inSettings.ignoreUserList.size() > 0 ? inSettings.ignoreUserList[0] : "";
 	for (size_t i = 1; i < inSettings.ignoreUserList.size(); ++i)
 	{
@@ -44,6 +46,8 @@ void SettingsDialog::onButtonClicked(QAbstractButton* button)
 	QDialogButtonBox::ButtonRole role = ui.buttonBox->buttonRole(button);
 	if (role == QDialogButtonBox::AcceptRole || role == QDialogButtonBox::ApplyRole)
 	{
+		settings.serverAddress = ui.serverAddress->text().trimmed().toStdString();
+		settings.multicast = ui.multicast->isChecked();
 		QStringList ignoreUsers = ui.nameIgnoreList->text().split(",");
 		settings.ignoreUserList.clear();
 		for (const QString& user : ignoreUsers)
