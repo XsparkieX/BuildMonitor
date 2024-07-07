@@ -64,9 +64,9 @@ private:
 	void onVolunteerToFix(uint64_t projectID);
 	void onViewBuildLog(uint64_t projectID);
 
-	std::unique_ptr<std::thread> communicationThread;
+	std::thread communicationThread;
 	std::atomic<bool> communicationThreadRunning;
-	std::atomic<uint8_t> buildMonitorHandle;
+	std::atomic<void*> buildMonitorHandle;
 	std::vector<ProjectsFFI> projects;
 	std::map<uint64_t, ProjectStatusFFI> lastProjectStatus;
 	std::mutex projectsMutex;

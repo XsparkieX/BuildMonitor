@@ -42,7 +42,7 @@
 BuildMonitor::BuildMonitor(QWidget *parent) :
 	QMainWindow(parent),
 	communicationThreadRunning(false),
-	buildMonitorHandle(0),
+	buildMonitorHandle(nullptr),
 	noInformationIcon(":/BuildMonitor/Resources/no_information.png"),
 	successfulBuildIcon(":/BuildMonitor/Resources/successful_build.png"),
 	successfulBuildInProgressIcon(":/BuildMonitor/Resources/successful_build_in-progress.png"),
@@ -72,32 +72,36 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	}
 
 	communicationThreadRunning = true;
-	communicationThread = std::make_unique<std::thread>([&] ()
+	communicationThread = std::thread([&] ()
 		{
 			buildMonitorHandle = bm_create("");
-			bm_start_client(buildMonitorHandle, settings.serverAddress.c_str(), settings.multicast);
-
-			while (communicationThreadRunning)
+			if (buildMonitorHandle)
 			{
-				if (bm_refresh_projects(buildMonitorHandle))
+				if (bm_start_client(buildMonitorHandle, settings.serverAddress.c_str(), settings.multicast))
 				{
-					uint32_t numProjects = bm_get_num_projects(buildMonitorHandle);
-					std::vector<ProjectsFFI> myProjects;
-					myProjects.resize(numProjects);
-					bm_acquire_projects(buildMonitorHandle, numProjects, myProjects.data());
+					while (communicationThreadRunning)
+					{
+						if (bm_refresh_projects(buildMonitorHandle))
+						{
+							uint32_t numProjects = bm_get_num_projects(buildMonitorHandle);
+							std::vector<ProjectsFFI> myProjects;
+							myProjects.resize(numProjects);
+							bm_acquire_projects(buildMonitorHandle, numProjects, myProjects.data());
 
-					projectsMutex.lock();
-					bm_release_projects(static_cast<uint32_t>(projects.size()), projects.data());
-					projects = std::move(myProjects);
-					projectsMutex.unlock();
+							projectsMutex.lock();
+							bm_release_projects(static_cast<uint32_t>(projects.size()), projects.data());
+							projects = std::move(myProjects);
+							projectsMutex.unlock();
 
-					serverInformationUpdated();
-					projectInformationUpdated();
+							serverInformationUpdated();
+							projectInformationUpdated();
+						}
+						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+					}
 				}
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				bm_destroy(buildMonitorHandle);
+				buildMonitorHandle = nullptr;
 			}
-
-			bm_destroy(buildMonitorHandle);
 		});
 
 	resize(settings.windowSizeX, settings.windowSizeY);
@@ -307,7 +311,7 @@ void BuildMonitor::exit()
 	if (communicationThreadRunning)
 	{
 		communicationThreadRunning = false;
-		communicationThread->join();
+		communicationThread.join();
 	}
 	close();
 }
