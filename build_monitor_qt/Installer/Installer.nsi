@@ -2,7 +2,7 @@
 !include "Include\nsProcess.nsh"
 !addplugindir "Plugin"
 
-!define VERSION "2.0.0"
+!define VERSION "2.1.0"
 
 Name "BuildMonitor"
 InstallDir "$PROGRAMFILES64\BuildMonitor"

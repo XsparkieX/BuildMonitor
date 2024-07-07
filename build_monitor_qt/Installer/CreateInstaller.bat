@@ -10,11 +10,11 @@ set CONFIG2=Release
 rem CONFIG=debug
 rem CONFIG2=Debug
 
-set PATH=C:\Qt\Tools\mingw730_64\bin;%PATH%
+set PATH=C:\Qt\Tools\mingw64\bin;%PATH%
 rmdir /S /Q Build
 mkdir Build
 pushd Build
-C:\Qt\5.13.0\mingw73_64\bin\qmake.exe -o Makefile ..\..\BuildMonitor.pro -spec win32-g++ CONFIG+=%CONFIG% CONFIG+=qml_%CONFIG%
+C:\Qt\qt-everywhere-src-6.7.2\qtbase\bin\qmake.exe -o Makefile ..\..\BuildMonitor.pro -spec win32-g++ CONFIG+=%CONFIG% CONFIG+=qml_%CONFIG%
 mingw32-make -j12 -f Makefile.%CONFIG2%
 if %errorlevel% neq 0 (
 	echo Project failed to compile.
@@ -27,7 +27,7 @@ rmdir /S /Q "Files"
 mkdir "Files"
 copy "Build\%CONFIG%\BuildMonitor.exe" "Files\"
 copy "Build\build_monitor_capi.dll" "Files\"
-"C:\Qt\5.13.0\mingw73_64\bin\windeployqt.exe" "Files\BuildMonitor.exe"
+"C:\Qt\qt-everywhere-src-6.7.2\qtbase\bin\windeployqt.exe" "Files\BuildMonitor.exe"
 if %errorlevel% neq 0 (
 	echo Failed to generate dependencies.
 	pause
