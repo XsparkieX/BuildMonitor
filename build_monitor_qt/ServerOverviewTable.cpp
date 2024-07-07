@@ -183,14 +183,14 @@ void ServerOverviewTable::openContextMenu(const QPoint& location)
 		{
 			if (const ServerOverviewTableEntry* item = static_cast<ServerOverviewTableEntry*>(itemAt(location)))
 			{
-				volunteerToFix(item->projectID);
+				emit volunteerToFix(item->projectID);
 			}
 		}
 		else if (selectedContextMenuItem == viewBuildLogAction)
 		{
 			if (const ServerOverviewTableEntry* item = static_cast<ServerOverviewTableEntry*>(itemAt(location)))
 			{
-				viewBuildLog(item->projectID);
+				emit viewBuildLog(item->projectID);
 			}
 		}
 	}

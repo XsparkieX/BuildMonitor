@@ -50,7 +50,7 @@ void SettingsDialog::onButtonClicked(QAbstractButton* button)
 		settings.multicast = ui.multicast->isChecked();
 		QStringList ignoreUsers = ui.nameIgnoreList->text().split(",");
 		settings.ignoreUserList.clear();
-		for (const QString& user : ignoreUsers)
+		for (const QString& user : std::as_const(ignoreUsers))
 		{
 			settings.ignoreUserList.emplace_back(user.trimmed().toStdString());
 		}

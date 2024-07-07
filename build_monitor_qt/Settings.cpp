@@ -66,7 +66,7 @@ bool Settings::loadSettings()
 	{
 		ignoreUserList.clear();
 		QJsonArray ignoreUserListArray = ignoreUserListValue.toArray();
-		for (const QJsonValue& userValue : ignoreUserListArray)
+		for (const QJsonValue& userValue : std::as_const(ignoreUserListArray))
 		{
 			if (userValue.isString())
 			{
@@ -86,7 +86,7 @@ bool Settings::loadSettings()
 	{
 		notifyList.clear();
 		QJsonArray notifyListArray = notifyListValue.toArray();
-		for (const QJsonValue& notifyProject : notifyListArray)
+		for (const QJsonValue& notifyProject : std::as_const(notifyListArray))
 		{
 			if (notifyProject.isString())
 			{
@@ -131,7 +131,7 @@ bool Settings::loadSettings()
 		windowSizeY = windowSizeYValue.toInt();
 	}
 
-	settingsChanged();
+	emit settingsChanged();
 
 	return true;
 }
@@ -181,5 +181,5 @@ void Settings::saveSettings()
 	}
 	settingsFile.write(settingsJson.toJson());
 
-	settingsChanged();
+	emit settingsChanged();
 }

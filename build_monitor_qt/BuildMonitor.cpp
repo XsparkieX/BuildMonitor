@@ -93,8 +93,8 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 							projects = std::move(myProjects);
 							projectsMutex.unlock();
 
-							serverInformationUpdated();
-							projectInformationUpdated();
+							emit serverInformationUpdated();
+							emit projectInformationUpdated();
 						}
 						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 					}
@@ -326,7 +326,7 @@ void BuildMonitor::showSettingsDialog()
 void BuildMonitor::setWindowPositionAndSize()
 {
 	// Lame way to work around an issue with isMaximized()...
-	QTimer::singleShot(25, [&]()
+	QTimer::singleShot(25, this, [&]()
 	{
 		settings.windowMaximized = isMaximized();
 		if (!settings.windowMaximized)
@@ -344,7 +344,7 @@ void BuildMonitor::setWindowPositionAndSize()
 
 void BuildMonitor::onSettingsChanged()
 {
-	projectInformationUpdated();
+	emit projectInformationUpdated();
 }
 
 void BuildMonitor::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
