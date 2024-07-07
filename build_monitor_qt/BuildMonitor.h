@@ -48,7 +48,6 @@ public:
 
 private:
 	void updateIcons();
-	void updateTaskbarProgress();
 	void showWindow();
 	void addToStartup();
 	void removeFromStartup();

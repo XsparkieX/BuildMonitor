@@ -32,10 +32,6 @@
 #include <qsettings.h>
 #include <qstatusbar.h>
 #include <qtimer.h>
-#ifdef _WIN32
-#include <qwintaskbarbutton.h>
-#include <qwintaskbarprogress.h>
-#endif
 #include <regex>
 #include <sstream>
 
@@ -50,9 +46,6 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	failedBuildInProgressIcon(":/BuildMonitor/Resources/failed_build_in-progress.png"),
 	tray(new QSystemTrayIcon(QIcon(), this)),
 	trayContextMenu(new TrayContextMenu(this)),
-#ifdef _WIN32
-	winTaskbarButton(new QWinTaskbarButton(this)),
-#endif
 	projectBuildStatusGlobal(ProjectStatusFFI::Unknown),
 	projectBuildStatusGlobalIsBuilding(false),
 	exitApplication(false)
@@ -218,62 +211,6 @@ void BuildMonitor::updateIcons()
 	}
 
 	tray->setIcon(*icon);
-#if _WIN32
-	winTaskbarButton->setWindow(windowHandle());
-	winTaskbarButton->setOverlayIcon(*icon);
-#endif
-}
-
-void BuildMonitor::updateTaskbarProgress()
-{
-#ifdef _WIN32
-	if ((projectBuildStatusGlobal == ProjectStatusFFI::Failed ||
-	     projectBuildStatusGlobal == ProjectStatusFFI::Unstable ||
-	     projectBuildStatusGlobal == ProjectStatusFFI::Aborted) &&
-	    projectBuildStatusGlobalIsBuilding)
-	{
-		float progressToDisplay = 0.0f;
-
-		const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()).count();
-
-		projectsMutex.lock();
-		for (const auto& project : projects)
-		{
-			if (std::find(settings.notifyList.begin(), settings.notifyList.end(),
-					project.id) == settings.notifyList.end())
-			{
-				continue;
-			}
-
-			if ((project.status == ProjectStatusFFI::Failed ||
-			     project.status == ProjectStatusFFI::Unstable ||
-			     project.status == ProjectStatusFFI::Aborted) &&
-				project.is_building)
-			{
-				if (project.estimated_duration > 0)
-				{
-					const float progress = (now - project.timestamp) / static_cast<float>(project.estimated_duration);
-					if (progress > progressToDisplay)
-					{
-						progressToDisplay = progress;
-					}
-				}
-			}
-		}
-		projectsMutex.unlock();
-
-		progressToDisplay = std::clamp(progressToDisplay, 0.0f, 1.0f);
-
-		QWinTaskbarProgress* progress = winTaskbarButton->progress();
-		progress->setVisible(true);
-		progress->setValue(progressToDisplay * progress->maximum());
-	}
-	else if (winTaskbarButton->progress()->isVisible())
-	{
-		winTaskbarButton->progress()->setVisible(false);
-	}
-#endif
 }
 
 void BuildMonitor::showWindow()
@@ -478,7 +415,6 @@ void BuildMonitor::onProjectInformationUpdated()
 		projectBuildStatusGlobalIsBuilding = isBuilding;
 		updateIcons();
 	}
-	updateTaskbarProgress();
 }
 
 void BuildMonitor::onServerInformationUpdated()

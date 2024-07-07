@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT       += core gui
-win32:QT += winextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -21,7 +20,7 @@ SOURCES += main.cpp\
     Settings.cpp \
     SettingsDialog.cpp \
     TrayContextMenu.cpp \
-	Utils.cpp
+    Utils.cpp
 
 HEADERS  += \
     BuildMonitor.h \
@@ -32,7 +31,7 @@ HEADERS  += \
     SingleInstanceMode.h \
     TrayContextAction.h \
     TrayContextMenu.h \
-	Utils.h
+    Utils.h
 
 FORMS    += BuildMonitor.ui \
     Settings.ui
@@ -43,10 +42,10 @@ RESOURCES += \
 RC_FILE = BuildMonitor.rc
 
 INCLUDEPATH += \
-	"$$_PRO_FILE_PWD_/../build_monitor/capi/include"
+    "$$_PRO_FILE_PWD_/../build_monitor/capi/include"
 
 win32:LIBS += \
-	-L"$$_PRO_FILE_PWD_\\..\\build_monitor\\capi\\target\\release" -lbuild_monitor_capi.dll
+    -L"$$_PRO_FILE_PWD_\\..\\build_monitor\\capi\\target\\release" -lbuild_monitor_capi.dll
 
 unix:LIBS += \
     -L"$$_PRO_FILE_PWD_/../build_monitor/capi/target/release" -lbuild_monitor_capi
