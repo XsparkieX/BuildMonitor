@@ -12,6 +12,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::VecDeque;
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -54,7 +55,6 @@ impl Header {
 }
 
 pub struct Monitor {
-    handle: u8,
     jenkins_server: String,
     version: u32,
     projects: Arc<RwLock<Vec<Project>>>,
@@ -69,9 +69,8 @@ struct RefreshedFolder {
 }
 
 impl Monitor {
-    pub fn new(handle: u8, server: &str) -> Monitor {
+    pub fn new(server: &str) -> Monitor {
         Monitor {
-            handle,
             jenkins_server: server.to_string(),
             version: 1,
             projects: Arc::new(RwLock::new(Vec::new())),
@@ -79,10 +78,6 @@ impl Monitor {
             server: None,
             client: None,
         }
-    }
-
-    pub fn get_handle(&self) -> u8 {
-        self.handle
     }
 
     pub async fn refresh_projects(&mut self) -> Result<bool, BuildMonitorError> {
@@ -177,26 +172,60 @@ impl Monitor {
         hasher.finish()
     }
 
-    pub fn start_server(&mut self, address: &str, multicast: bool) {
+    pub fn start_server(&mut self, address: &str, multicast: bool) -> Result<(), String> {
+        let address = match address.to_socket_addrs() {
+            Ok(mut address) =>
+                match address.next() {
+                    Some(address) => address,
+                    None => return Err("Failed to fetch first address.".to_string())
+                }
+            ,
+            Err(_) => return Err("Failed to convert address to ip.".to_string())
+        };
+
         self.server = Some(MonitorServer::new(
-            address.parse().unwrap(),
+            address,
             self.version,
             self.projects.clone(),
             multicast
         ));
+
+        return Ok(());
     }
 
     pub fn stop_server(self: &mut Monitor) {
         self.server = None;
     }
 
-    pub fn start_client(&mut self, server_address: &str, client_address: &str, multicast: bool) {
+    pub fn start_client(&mut self, server_address: &str, client_address: &str, multicast: bool) -> Result<(), String> {
+        let server_address = match server_address.to_socket_addrs() {
+            Ok(mut address) =>
+                match address.next() {
+                    Some(address) => address,
+                    None => return Err("Failed to fetch first address of server_address.".to_string())
+                }
+            ,
+            Err(_) => return Err("Failed to convert server address to ip.".to_string())
+        };
+
+        let client_address = match client_address.to_socket_addrs() {
+            Ok(mut address) =>
+                match address.next() {
+                    Some(address) => address,
+                    None => return Err("Failed to fetch first address of client_address.".to_string())
+                }
+            ,
+            Err(_) => return Err("Failed to convert client address to ip.".to_string())
+        };
+
         self.client = Some(MonitorClient::new(
-            server_address.parse().unwrap(),
-            client_address.parse().unwrap(),
+            server_address,
+            client_address,
             self.version,
             multicast
         ));
+
+        return Ok(())
     }
 
     pub fn stop_client(&mut self) {
