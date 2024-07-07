@@ -261,7 +261,7 @@ fn server_query_thread(data: &Arc<RwLock<MonitorServerThreadData>>) {
 
         }
 
-        std::thread::sleep(Duration::from_millis(500));
+        std::thread::sleep(Duration::from_millis(5));
     }
 }
 

@@ -109,8 +109,7 @@ impl Monitor {
                 }
 
                 {
-                    let mut projects = self.projects.write().unwrap();
-                    projects.clear();
+                    let mut projects = Vec::<Project>::new();
                     let mut folders_to_crawl: VecDeque<String> = VecDeque::new();
                     folders_to_crawl.push_back(self.jenkins_server.clone());
                     while !folders_to_crawl.is_empty() {
@@ -142,6 +141,8 @@ impl Monitor {
                             None => {}
                         }
                     }
+
+                    *self.projects.write().unwrap() = projects;
                 }
             }
         };
