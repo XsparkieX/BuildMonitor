@@ -8,7 +8,7 @@ use std::thread::sleep;
 use std::time::{Duration, SystemTime};
 
 fn retrieve_info(address: &str) {
-    let mut monitor = Monitor::new(0, address); 
+    let mut monitor = Monitor::new(address); 
     match block_on(monitor.refresh_projects()) {
         Ok(has_projects) => {
             if has_projects {
@@ -19,9 +19,9 @@ fn retrieve_info(address: &str) {
     }
 }
 
-fn client(address: &str) {
-    let mut monitor = Monitor::new(0, "");
-    monitor.start_client(address, "0.0.0.0:8091", false);
+fn client(address: &str) -> Result<(), String> {
+    let mut monitor = Monitor::new("");
+    monitor.start_client(address, "0.0.0.0:8091", false)?;
     loop {
         {
             match block_on(monitor.refresh_projects()) {
@@ -38,15 +38,15 @@ fn client(address: &str) {
     }
 }
 
-fn server(jenkins_address: &str, address: &str) {
-    let mut monitor = Monitor::new(0, jenkins_address);
+fn server(jenkins_address: &str, address: &str) -> Result<(), String> {
+    let mut monitor = Monitor::new(jenkins_address);
     println!("Refreshing initial projects...");
     match block_on(monitor.refresh_projects()) {
         Ok(_) => {}
         Err(e) => eprintln!("Failed to refresh projects. Error: {}", e),
     }
     println!("Starting server...");
-    monitor.start_server(address, false);
+    monitor.start_server(address, false)?;
 
     let mut elapsed_time: Duration = Duration::new(10, 0);
     loop {
@@ -87,7 +87,10 @@ fn main() {
                 println!("Usage build_monitor_cli.exe --client {{address}}");
             }
             else {
-                client(&args[2]);
+                match client(&args[2]) {
+                    Ok(()) => {},
+                    Err(e) => eprintln!("Failed to start client: {}", e)
+                }
             }
         }
         else if args[1] == "--server" {
@@ -95,7 +98,10 @@ fn main() {
                 println!("Usage build_monitor_cli.exe --server {{url_to_buildserver}} {{address}}");
             }
             else {
-                server(&args[2], &args[3]);
+                match server(&args[2], &args[3]) {
+                    Ok(()) => {},
+                    Err(e) => eprintln!("Failed to start server: {}", e)
+                }
             }
         }
         else
