@@ -81,7 +81,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 				{
 					while (communicationThreadRunning)
 					{
-						if (bm_refresh_projects(buildMonitorHandle))
+						if (bm_refresh_projects(buildMonitorHandle) > 0)
 						{
 							uint32_t numProjects = bm_get_num_projects(buildMonitorHandle);
 							std::vector<ProjectsFFI> myProjects;
