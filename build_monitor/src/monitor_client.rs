@@ -256,11 +256,10 @@ fn client_query_connection_thread(data: &Arc<RwLock<MonitorClientThreadData>>) {
             },
             Err(()) => {}
         }
-        std::thread::sleep(std::time::Duration::from_millis(900));
 
         client_send_volunteers(data, &socket, &Some(server_address));
 
-        std::thread::sleep(std::time::Duration::from_millis(15000));
+        std::thread::park_timeout(std::time::Duration::from_secs(15));
     }
 }
 
@@ -322,7 +321,9 @@ impl Drop for MonitorClient {
     fn drop(&mut self) {
         self.thread_data.write().unwrap().running = false;
 
-        let join_result = self.connection_thread.take().unwrap().join();
+        let join_handle = self.connection_thread.take().unwrap();
+        join_handle.thread().unpark();
+        let join_result = join_handle.join();
         if join_result.is_err() {
             eprintln!("Failed to join the connection thread thread.")
         }
