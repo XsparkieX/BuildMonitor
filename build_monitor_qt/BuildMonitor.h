@@ -54,6 +54,8 @@ private:
 	void exit();
 	void showSettingsDialog();
 	void setWindowPositionAndSize();
+	void startCommunicationThread();
+	void stopCommunicationThread();
 
 	void onSettingsChanged();
 	void onTrayActivated(QSystemTrayIcon::ActivationReason reason);

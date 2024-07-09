@@ -64,39 +64,6 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 		onSettingsChanged();
 	}
 
-	communicationThreadRunning = true;
-	communicationThread = std::thread([&] ()
-		{
-			buildMonitorHandle = bm_create("");
-			if (buildMonitorHandle)
-			{
-				if (bm_start_client(buildMonitorHandle, settings.serverAddress.c_str(), settings.multicast))
-				{
-					while (communicationThreadRunning)
-					{
-						if (bm_refresh_projects(buildMonitorHandle) > 0)
-						{
-							uint32_t numProjects = bm_get_num_projects(buildMonitorHandle);
-							std::vector<ProjectsFFI> myProjects;
-							myProjects.resize(numProjects);
-							bm_acquire_projects(buildMonitorHandle, numProjects, myProjects.data());
-
-							projectsMutex.lock();
-							bm_release_projects(static_cast<uint32_t>(projects.size()), projects.data());
-							projects = std::move(myProjects);
-							projectsMutex.unlock();
-
-							emit serverInformationUpdated();
-							emit projectInformationUpdated();
-						}
-						std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-					}
-				}
-				bm_destroy(buildMonitorHandle);
-				buildMonitorHandle = nullptr;
-			}
-		});
-
 	resize(settings.windowSizeX, settings.windowSizeY);
 	move(settings.windowPosX, settings.windowPosY);
 	if (settings.windowMaximized)
@@ -245,11 +212,7 @@ void BuildMonitor::removeFromStartup()
 void BuildMonitor::exit()
 {
 	exitApplication = true;
-	if (communicationThreadRunning)
-	{
-		communicationThreadRunning = false;
-		communicationThread.join();
-	}
+	stopCommunicationThread();
 	close();
 }
 
@@ -279,9 +242,68 @@ void BuildMonitor::setWindowPositionAndSize()
 	});
 }
 
+void BuildMonitor::startCommunicationThread()
+{
+	assert(!communicationThreadRunning);
+
+	communicationThreadRunning = true;
+	communicationThread = std::thread([&] ()
+	{
+		buildMonitorHandle = bm_create("");
+		assert(buildMonitorHandle);
+		while (communicationThreadRunning)
+		{
+			if (bm_start_client(buildMonitorHandle, settings.serverAddress.c_str(), settings.multicast) > 0)
+			{
+				break;
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
+
+		while (communicationThreadRunning)
+		{
+			if (bm_refresh_projects(buildMonitorHandle) > 0)
+			{
+				const uint32_t numProjects = bm_get_num_projects(buildMonitorHandle);
+				std::vector<ProjectsFFI> myProjects;
+				myProjects.resize(numProjects);
+				bm_acquire_projects(buildMonitorHandle, numProjects, myProjects.data());
+
+				projectsMutex.lock();
+				bm_release_projects(static_cast<uint32_t>(projects.size()), projects.data());
+				projects = std::move(myProjects);
+				projectsMutex.unlock();
+
+				emit serverInformationUpdated();
+				emit projectInformationUpdated();
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
+
+		bm_destroy(buildMonitorHandle);
+		buildMonitorHandle = nullptr;
+	});
+}
+
+void BuildMonitor::stopCommunicationThread()
+{
+	assert(communicationThreadRunning);
+	communicationThreadRunning = false;
+	communicationThread.join();
+}
+
 void BuildMonitor::onSettingsChanged()
 {
-	emit projectInformationUpdated();
+	if (!exitApplication)
+	{
+		projects.clear();
+		if (communicationThreadRunning)
+		{
+			stopCommunicationThread();
+		}
+		startCommunicationThread();
+		emit projectInformationUpdated();
+	}
 }
 
 void BuildMonitor::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
