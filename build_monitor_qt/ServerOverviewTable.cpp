@@ -215,7 +215,7 @@ void ServerOverviewTable::onTreeRowItemChanged(QTreeWidgetItem* item, int column
 			if (std::find(settings->notifyList.begin(), settings->notifyList.end(), row->projectID) == settings->notifyList.end())
 			{
 				settings->notifyList.emplace_back(row->projectID);
-				settings->saveSettings();
+				settings->saveSettings(false);
 			}
 		}
 		else
@@ -225,7 +225,7 @@ void ServerOverviewTable::onTreeRowItemChanged(QTreeWidgetItem* item, int column
 			if (remove != settings->notifyList.end())
 			{
 				settings->notifyList.erase(remove, settings->notifyList.end());
-				settings->saveSettings();
+				settings->saveSettings(false);
 			}
 		}
 	}

@@ -57,7 +57,7 @@ private:
 	void startCommunicationThread();
 	void stopCommunicationThread();
 
-	void onSettingsChanged();
+	void onSettingsChanged(bool serverSettingsChanged);
 	void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
 	void onTrayContextActionExecuted(TrayContextAction action);
 	void onProjectInformationUpdated();

@@ -61,7 +61,7 @@ BuildMonitor::BuildMonitor(QWidget *parent) :
 	connect(&settings, &Settings::settingsChanged, this, &BuildMonitor::onSettingsChanged);
 	if (!settings.loadSettings())
 	{
-		onSettingsChanged();
+		onSettingsChanged(true);
 	}
 
 	resize(settings.windowSizeX, settings.windowSizeY);
@@ -112,7 +112,7 @@ void BuildMonitor::changeEvent(QEvent * event)
 	{
 		if (isMinimized())
 		{
-			settings.saveSettings();
+			settings.saveSettings(false);
 			hide();
 		}
 	}
@@ -131,7 +131,7 @@ void BuildMonitor::showEvent(QShowEvent* event)
 void BuildMonitor::closeEvent(QCloseEvent* event)
 {
 	QMainWindow::closeEvent(event);
-	settings.saveSettings();
+	settings.saveSettings(false);
 	if (exitApplication)
 	{
 		close();
@@ -292,16 +292,19 @@ void BuildMonitor::stopCommunicationThread()
 	communicationThread.join();
 }
 
-void BuildMonitor::onSettingsChanged()
+void BuildMonitor::onSettingsChanged(bool serverSettingsChanged)
 {
 	if (!exitApplication)
 	{
-		projects.clear();
-		if (communicationThreadRunning)
+		if (serverSettingsChanged)
 		{
-			stopCommunicationThread();
+			projects.clear();
+			if (communicationThreadRunning)
+			{
+				stopCommunicationThread();
+			}
+			startCommunicationThread();
 		}
-		startCommunicationThread();
 		emit projectInformationUpdated();
 	}
 }

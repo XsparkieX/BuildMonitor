@@ -46,7 +46,11 @@ void SettingsDialog::onButtonClicked(QAbstractButton* button)
 	QDialogButtonBox::ButtonRole role = ui.buttonBox->buttonRole(button);
 	if (role == QDialogButtonBox::AcceptRole || role == QDialogButtonBox::ApplyRole)
 	{
-		settings.serverAddress = ui.serverAddress->text().trimmed().toStdString();
+		const std::string newServerAddress = ui.serverAddress->text().trimmed().toStdString();
+		const bool serverSettingsChanged =
+			settings.serverAddress != newServerAddress ||
+			settings.multicast != ui.multicast->isChecked();
+		settings.serverAddress = newServerAddress;
 		settings.multicast = ui.multicast->isChecked();
 		QStringList ignoreUsers = ui.nameIgnoreList->text().split(",");
 		settings.ignoreUserList.clear();
@@ -56,6 +60,6 @@ void SettingsDialog::onButtonClicked(QAbstractButton* button)
 		}
 		settings.showDisabledProjects = ui.showDisabledBuilds->isChecked();
 		settings.closeToTrayOnStartup = ui.closeToTrayOnStartup->isChecked();
-		settings.saveSettings();
+		settings.saveSettings(serverSettingsChanged);
 	}
 }

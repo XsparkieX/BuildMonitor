@@ -29,7 +29,7 @@ public:
 	Settings(QObject* parent = Q_NULLPTR);
 
 	bool loadSettings();
-	void saveSettings();
+	void saveSettings(bool serverPropertiesChanged);
 
 	const QDir projectSettingsFolder;
 
@@ -46,5 +46,5 @@ public:
 	qint32 windowPosY;
 
 Q_SIGNALS:
-	void settingsChanged();
+	void settingsChanged(bool serverPropertiesChanged);
 };

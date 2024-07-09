@@ -131,12 +131,12 @@ bool Settings::loadSettings()
 		windowSizeY = windowSizeYValue.toInt();
 	}
 
-	emit settingsChanged();
+	emit settingsChanged(true);
 
 	return true;
 }
 
-void Settings::saveSettings()
+void Settings::saveSettings(bool serverPropertiesChanged)
 {
 	QJsonObject root;
 
@@ -181,5 +181,5 @@ void Settings::saveSettings()
 	}
 	settingsFile.write(settingsJson.toJson());
 
-	emit settingsChanged();
+	emit settingsChanged(serverPropertiesChanged);
 }
