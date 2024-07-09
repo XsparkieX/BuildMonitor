@@ -1,6 +1,6 @@
 // Copyright Sander Brattinga. All rights reserved.
 
-use crate::monitor::{Header, MessageType};
+use crate::monitor::{Header, MessageType, Monitor};
 use crate::project::{Project, Volunteer};
 use crate::utils::get_local_addresses;
 
@@ -61,7 +61,27 @@ fn server_handle_project_update(data: &Arc<RwLock<MonitorServerThreadData>>, lis
     let mut write_buffer = Vec::<u8>::new();
     write_buffer.append(&mut bincode::serialize(&header).unwrap());
     write_buffer.append(&mut projects_buffer);
-    println!("Sending around the projects.");
+    println!("Sending projects to {}.", address);
+    match listener.send_to(&write_buffer, address) {
+        Ok(_) => {},
+        Err(e) => { eprintln!("Failed to send to {}. Error: {}", address, e); }
+    }
+}
+
+fn server_handle_no_project_update(data: &Arc<RwLock<MonitorServerThreadData>>, listener: &UdpSocket, address: &SocketAddr) {
+    let version;
+    {
+        let data_read_lock = data.read().unwrap();
+        version = data_read_lock.version;
+    }
+    let mut header = Header::new();
+    header.version = version;
+    header.msg_type = MessageType::NoProjectUpdate;
+    header.msg_size = 0;
+
+    let mut write_buffer = Vec::<u8>::new();
+    write_buffer.append(&mut bincode::serialize(&header).unwrap());
+    println!("Sending no need for update to {}.", address);
     match listener.send_to(&write_buffer, address) {
         Ok(_) => {},
         Err(e) => { eprintln!("Failed to send to {}. Error: {}", address, e); }
@@ -165,7 +185,11 @@ fn server_multicast_thread(data: &Arc<RwLock<MonitorServerThreadData>>) {
                 match server_get_header(&listener, &mut recv_buffer) {
                     Ok((header, from_address, mut deserialize_buffer)) => {
                         if header.version == version {
-                            if header.msg_type == MessageType::NewConnection {
+                            if header.msg_type == MessageType::ProjectUpdateRequest {
+                                let _dummy: u64 = 0;
+                                let _dummy2: Vec<_> = deserialize_buffer
+                                    .drain(..bincode::serialized_size(&_dummy).unwrap() as usize)
+                                    .collect();
                                 server_handle_project_update(data, &listener, &from_address);
                             } else if header.msg_type == MessageType::VolunteerAdded {
                                 needs_refresh = server_handle_volunteer_added(data, &mut deserialize_buffer);
@@ -232,10 +256,13 @@ fn server_query_thread(data: &Arc<RwLock<MonitorServerThreadData>>) {
     loop {
         let version;
         let running;
+        let projects_hash;
         {
             let data_read_lock = data.read().unwrap();
             running = data_read_lock.running;
             version = data_read_lock.version;
+            let projects = data_read_lock.projects.read().unwrap();
+            projects_hash = Monitor::generate_projects_hash(&projects);
         }
 
         if !running {
@@ -247,10 +274,23 @@ fn server_query_thread(data: &Arc<RwLock<MonitorServerThreadData>>) {
             match server_get_header(&listener, &mut recv_buffer) {
                 Ok((header, from_address, mut deserialize_buffer)) => {
                     if header.version == version {
-                        if header.msg_type == MessageType::NewConnection || header.msg_type == MessageType::ProjectUpdate {
-                            server_handle_project_update(data, &listener, &from_address);
-                        } else if header.msg_type == MessageType::VolunteerAdded {
-                            server_handle_volunteer_added(data, &mut deserialize_buffer);
+                        // Ensure the full message fit into the packet.
+                        if header.msg_size >= deserialize_buffer.len() as u32 {
+                            if header.msg_type == MessageType::ProjectUpdateRequest {
+                                let mut client_project_hash: u64 = 0;
+                                let client_project_hash_raw: Vec<u8> = deserialize_buffer
+                                    .drain(..bincode::serialized_size(&client_project_hash).unwrap() as usize)
+                                    .collect();
+                                client_project_hash = bincode::deserialize::<u64>(&client_project_hash_raw).unwrap();
+                                if projects_hash == client_project_hash {
+                                    server_handle_no_project_update(data, &listener, &from_address);
+                                }
+                                else {
+                                    server_handle_project_update(data, &listener, &from_address);
+                                }
+                            } else if header.msg_type == MessageType::VolunteerAdded {
+                                server_handle_volunteer_added(data, &mut deserialize_buffer);
+                            }
                         }
                     }
                 },

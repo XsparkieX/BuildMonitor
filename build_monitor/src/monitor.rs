@@ -20,8 +20,9 @@ use std::sync::RwLock;
 pub enum MessageType {
     Invalid,
     Beacon,
+    ProjectUpdateRequest,
+    NoProjectUpdate,
     ProjectUpdate,
-    NewConnection,
     VolunteerAdded,
 }
 
@@ -30,8 +31,9 @@ impl std::fmt::Display for MessageType {
         match &*self {
             MessageType::Invalid => write!(f, "Invalid"),
             MessageType::Beacon => write!(f, "Beacon"),
+            MessageType::ProjectUpdateRequest => write!(f, "ProjectUpdateRequest"),
+            MessageType::NoProjectUpdate => write!(f, "NoProjectUpdate"),
             MessageType::ProjectUpdate => write!(f, "ProjectUpdate"),
-            MessageType::NewConnection => write!(f, "NewConnection"),
             MessageType::VolunteerAdded => write!(f, "VolunteerAdded"),
         }
     }
@@ -147,7 +149,7 @@ impl Monitor {
             }
         };
 
-        let projects_hash = self.generate_projects_hash(&self.projects.read().unwrap());
+        let projects_hash = Monitor::generate_projects_hash(&self.projects.read().unwrap());
         let has_new_projects = projects_hash != self.projects_hash;
         if has_new_projects {
             self.projects_hash = projects_hash;
@@ -164,7 +166,7 @@ impl Monitor {
         &self.projects
     }
 
-    pub fn generate_projects_hash(&self, projects: &Vec<Project>) -> u64 {
+    pub fn generate_projects_hash(projects: &Vec<Project>) -> u64 {
         let mut hasher = DefaultHasher::new();
         for project in projects.iter() {
             project.hash(&mut hasher);

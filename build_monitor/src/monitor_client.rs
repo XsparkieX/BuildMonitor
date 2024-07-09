@@ -1,6 +1,6 @@
 // Copyright Sander Brattinga. All rights reserved.
 
-use crate::monitor::{Header, MessageType};
+use crate::monitor::{Header, MessageType, Monitor};
 use crate::project::{Project, Volunteer};
 use crate::utils::{get_username, get_local_addresses};
 
@@ -18,13 +18,17 @@ struct MonitorClientThreadData {
     client_address: SocketAddr,
 }
 
-fn client_request_server_update(socket: &UdpSocket, version: u32, address: &SocketAddr) {
+fn client_request_server_update(socket: &UdpSocket, version: u32, address: &SocketAddr, projects_hash: u64) {
+    println!("Sending hash {}", projects_hash);
     let mut header = Header::new();
     header.version = version;
-    header.msg_type = MessageType::NewConnection;
-    header.msg_size = 0;
+    header.msg_type = MessageType::ProjectUpdateRequest;
+    let mut serialized_msg = bincode::serialize(&projects_hash).unwrap();
+    header.msg_size = serialized_msg.len() as u32;
+
     let mut write_buffer: Vec<u8> = Vec::new();
     write_buffer.append(&mut bincode::serialize(&header).unwrap());
+    write_buffer.append(&mut serialized_msg);
     println!("Requesting a project update. Address {}", address);
     socket.send_to(&write_buffer, address).unwrap();
 }
@@ -180,7 +184,7 @@ fn client_multicast_connection_thread(data: &Arc<RwLock<MonitorClientThreadData>
                             }
                         } else if !has_received_projects && header.msg_type == MessageType::Beacon {
                             from_address = Some(address);
-                            client_request_server_update(&socket, version, &address);
+                            client_request_server_update(&socket, version, &address, 0);
                         }
                     }
                 },
@@ -218,6 +222,7 @@ fn client_query_connection_thread(data: &Arc<RwLock<MonitorClientThreadData>>) {
         .expect("Failed to bind socket.");
 
     let socket: UdpSocket = socket.into();
+    let mut projects_hash = 0;
     loop {
         let running;
         let version;
@@ -233,7 +238,7 @@ fn client_query_connection_thread(data: &Arc<RwLock<MonitorClientThreadData>>) {
 
         const RECV_BUFFER_SIZE: usize = 1 * 1024 * 1024;
         let mut recv_buffer: [u8; RECV_BUFFER_SIZE] = [0; RECV_BUFFER_SIZE];
-        client_request_server_update(&socket, version, &server_address);
+        client_request_server_update(&socket, version, &server_address, projects_hash);
         // Give the server some time to respond, before going into the slower delay
         std::thread::sleep(std::time::Duration::from_millis(100));
 
@@ -249,9 +254,13 @@ fn client_query_connection_thread(data: &Arc<RwLock<MonitorClientThreadData>>) {
                             .drain(..header.msg_size as usize)
                             .collect();
                         let projects = bincode::deserialize::<Vec<Project>>(&projects_raw).unwrap();
+                        projects_hash = Monitor::generate_projects_hash(&projects);
                         let read_locked = data.read().unwrap();
                         *read_locked.projects.write().unwrap() = projects;
                     }
+                }
+                else if header.msg_type == MessageType::NoProjectUpdate {
+                    println!("No project update needed.");
                 }
             },
             Err(()) => {}
